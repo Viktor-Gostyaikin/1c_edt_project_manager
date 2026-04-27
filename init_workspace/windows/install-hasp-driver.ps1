@@ -69,13 +69,13 @@ function Find-HaspInstaller {
         }
     }
 
-    Write-Host "Р”РѕСЃС‚СѓРїРЅС‹Рµ С„Р°Р№Р»С‹ РІ РєР°С‚Р°Р»РѕРіРµ СЂР°СЃРїР°РєРѕРІРєРё:" -ForegroundColor Yellow
+    Write-Host "Доступные файлы в каталоге распаковки:" -ForegroundColor Yellow
     $files = Get-ChildItem -Path $SearchDir -Recurse -File -ErrorAction SilentlyContinue
     foreach ($file in $files) {
         Write-Host "  $($file.FullName)" -ForegroundColor Yellow
     }
 
-    throw "РќРµ РЅР°Р№РґРµРЅ СѓСЃС‚Р°РЅРѕРІС‰РёРє РґСЂР°Р№РІРµСЂР° HASP (*.exe РёР»Рё *.msi) РІ РєР°С‚Р°Р»РѕРіРµ: $SearchDir"
+    throw "Не найден установщик драйвера HASP (*.exe или *.msi) в каталоге: $SearchDir"
 }
 
 function Install-HaspDriver {
@@ -88,8 +88,8 @@ function Install-HaspDriver {
 
     Assert-Administrator
 
-    Write-Host "Р—Р°РїСѓСЃРєР°СЋ СѓСЃС‚Р°РЅРѕРІРєСѓ РґСЂР°Р№РІРµСЂР° HASP: $InstallerPath"
-    Write-Host "РђСЂРіСѓРјРµРЅС‚С‹: $($Arguments -join ' ')"
+    Write-Host "Запускаю установку драйвера HASP: $InstallerPath"
+    Write-Host "Аргументы: $($Arguments -join ' ')"
 
     $process = Start-Process `
         -FilePath $InstallerPath `
@@ -98,7 +98,7 @@ function Install-HaspDriver {
         -PassThru
 
     if ($process.ExitCode -ne 0) {
-        throw "РЈСЃС‚Р°РЅРѕРІС‰РёРє РґСЂР°Р№РІРµСЂР° HASP Р·Р°РІРµСЂС€РёР»СЃСЏ СЃ РєРѕРґРѕРј $($process.ExitCode)."
+        throw "Установщик драйвера HASP завершился с кодом $($process.ExitCode)."
     }
 }
 
@@ -112,10 +112,10 @@ $distribution = Save-OneCDistribution `
     -Password $credential.Password `
     -Force:$ForceDownload
 
-Write-Host "РЎРєР°С‡Р°РЅРЅС‹Р№ РґРёСЃС‚СЂРёР±СѓС‚РёРІ: $($distribution.File)"
+Write-Host "Скачанный дистрибутив: $($distribution.File)"
 
 if ($DownloadOnly) {
-    Write-Host "Р РµР¶РёРј DownloadOnly: СѓСЃС‚Р°РЅРѕРІРєР° РЅРµ Р·Р°РїСѓСЃРєР°РµС‚СЃСЏ."
+    Write-Host "Режим DownloadOnly: установка не запускается."
     exit 0
 }
 
@@ -127,4 +127,4 @@ $installerRoot = Expand-OneCArchive `
 $installerPath = Find-HaspInstaller -SearchDir $installerRoot -DownloadedFile $distribution.File
 Install-HaspDriver -InstallerPath $installerPath -Arguments $InstallerArguments
 
-Write-Host "РЈСЃС‚Р°РЅРѕРІРєР° РґСЂР°Р№РІРµСЂР° HASP Р·Р°РІРµСЂС€РµРЅР°." -ForegroundColor Green
+Write-Host "Установка драйвера HASP завершена." -ForegroundColor Green

@@ -1,4 +1,4 @@
-п»ї#Requires -Version 5.1
+#Requires -Version 5.1
 
 param(
     [switch]$SkipInstall
@@ -61,10 +61,10 @@ function Get-SevenZipPath {
 function Install-SevenZipWithWinget {
     $wingetPath = Get-CommandPath "winget.exe"
     if (-not $wingetPath) {
-        throw "winget.exe РЅРµ РЅР°Р№РґРµРЅ. РЈСЃС‚Р°РЅРѕРІРёС‚Рµ 7-Zip РІСЂСѓС‡РЅСѓСЋ СЃ https://www.7-zip.org/ РёР»Рё СѓСЃС‚Р°РЅРѕРІРёС‚Рµ App Installer РёР· Microsoft Store."
+        throw "winget.exe не найден. Установите 7-Zip вручную с https://www.7-zip.org/ или установите App Installer из Microsoft Store."
     }
 
-    Write-Host "РЈСЃС‚Р°РЅР°РІР»РёРІР°СЋ 7-Zip С‡РµСЂРµР· winget..."
+    Write-Host "Устанавливаю 7-Zip через winget..."
     & $wingetPath install `
         --id 7zip.7zip `
         --exact `
@@ -73,25 +73,25 @@ function Install-SevenZipWithWinget {
         --accept-package-agreements | Out-Host
 
     if ($LASTEXITCODE -ne 0) {
-        throw "winget РЅРµ СЃРјРѕРі СѓСЃС‚Р°РЅРѕРІРёС‚СЊ 7-Zip. РљРѕРґ Р·Р°РІРµСЂС€РµРЅРёСЏ: $LASTEXITCODE"
+        throw "winget не смог установить 7-Zip. Код завершения: $LASTEXITCODE"
     }
 }
 
 $sevenZipPath = Get-SevenZipPath
 if ($sevenZipPath) {
-    Write-Host "7-Zip СѓР¶Рµ СѓСЃС‚Р°РЅРѕРІР»РµРЅ: $sevenZipPath" -ForegroundColor Green
+    Write-Host "7-Zip уже установлен: $sevenZipPath" -ForegroundColor Green
     exit 0
 }
 
 if ($SkipInstall) {
-    throw "7-Zip РЅРµ РЅР°Р№РґРµРЅ."
+    throw "7-Zip не найден."
 }
 
 Install-SevenZipWithWinget
 
 $sevenZipPath = Get-SevenZipPath
 if (-not $sevenZipPath) {
-    throw "7-Zip СѓСЃС‚Р°РЅРѕРІР»РµРЅ, РЅРѕ 7z.exe РїРѕРєР° РЅРµ РЅР°Р№РґРµРЅ. РџРµСЂРµР·Р°РїСѓСЃС‚РёС‚Рµ С‚РµСЂРјРёРЅР°Р» РёР»Рё РїСЂРѕРІРµСЂСЊС‚Рµ РєР°С‚Р°Р»РѕРі C:\Program Files\7-Zip."
+    throw "7-Zip установлен, но 7z.exe пока не найден. Перезапустите терминал или проверьте каталог C:\Program Files\7-Zip."
 }
 
-Write-Host "7-Zip СѓСЃС‚Р°РЅРѕРІР»РµРЅ: $sevenZipPath" -ForegroundColor Green
+Write-Host "7-Zip установлен: $sevenZipPath" -ForegroundColor Green

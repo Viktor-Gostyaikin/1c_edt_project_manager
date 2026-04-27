@@ -1,4 +1,4 @@
-п»ї#Requires -Version 5.1
+#Requires -Version 5.1
 
 function Get-InitWorkspaceVariables {
     param(
@@ -15,7 +15,7 @@ function Get-InitWorkspaceVariables {
     . $varsPath
 
     if ($InitWorkspace -isnot [hashtable]) {
-        throw "Р¤Р°Р№Р» РїРµСЂРµРјРµРЅРЅС‹С… РґРѕР»Р¶РµРЅ Р·Р°РґР°РІР°С‚СЊ hashtable `$InitWorkspace. Р¤Р°Р№Р»: $varsPath"
+        throw "Файл переменных должен задавать hashtable `$InitWorkspace. Файл: $varsPath"
     }
 
     return $InitWorkspace

@@ -1,4 +1,4 @@
-п»ї#Requires -Version 5.1
+#Requires -Version 5.1
 
 param(
     [string]$UserName = "",
@@ -102,12 +102,12 @@ function Invoke-Git {
 
     $gitPath = Get-GitPath
     if (-not $gitPath) {
-        throw "git.exe РЅРµ РЅР°Р№РґРµРЅ. РЈСЃС‚Р°РЅРѕРІРёС‚Рµ Git for Windows Рё РїРµСЂРµР·Р°РїСѓСЃС‚РёС‚Рµ С‚РµСЂРјРёРЅР°Р»."
+        throw "git.exe не найден. Установите Git for Windows и перезапустите терминал."
     }
 
     & $gitPath @Arguments
     if ($LASTEXITCODE -ne 0) {
-        throw "РљРѕРјР°РЅРґР° git Р·Р°РІРµСЂС€РёР»Р°СЃСЊ СЃ РєРѕРґРѕРј ${LASTEXITCODE}: git $($Arguments -join ' ')"
+        throw "Команда git завершилась с кодом ${LASTEXITCODE}: git $($Arguments -join ' ')"
     }
 }
 
@@ -117,7 +117,7 @@ function Install-GitWithWinget {
         return $false
     }
 
-    Write-Host "РЈСЃС‚Р°РЅР°РІР»РёРІР°СЋ Git for Windows С‡РµСЂРµР· winget..."
+    Write-Host "Устанавливаю Git for Windows через winget..."
     & $wingetPath install `
         --id Git.Git `
         --exact `
@@ -126,14 +126,14 @@ function Install-GitWithWinget {
         --accept-package-agreements | Out-Host
 
     if ($LASTEXITCODE -ne 0) {
-        throw "winget РЅРµ СЃРјРѕРі СѓСЃС‚Р°РЅРѕРІРёС‚СЊ Git for Windows. РљРѕРґ Р·Р°РІРµСЂС€РµРЅРёСЏ: $LASTEXITCODE"
+        throw "winget не смог установить Git for Windows. Код завершения: $LASTEXITCODE"
     }
 
     return $true
 }
 
 function Get-LatestGitInstallerUrl {
-    Write-Host "РџРѕР»СѓС‡Р°СЋ СЃСЃС‹Р»РєСѓ РЅР° Р°РєС‚СѓР°Р»СЊРЅС‹Р№ Git for Windows..."
+    Write-Host "Получаю ссылку на актуальный Git for Windows..."
     $release = Invoke-RestMethod `
         -Uri "https://api.github.com/repos/git-for-windows/git/releases/latest" `
         -Headers @{ "User-Agent" = "itw-mis-init-workspace" } `
@@ -144,7 +144,7 @@ function Get-LatestGitInstallerUrl {
         Select-Object -First 1
 
     if (-not $asset) {
-        throw "Р’ РїРѕСЃР»РµРґРЅРµРј СЂРµР»РёР·Рµ Git for Windows РЅРµ РЅР°Р№РґРµРЅ 64-bit .exe СѓСЃС‚Р°РЅРѕРІС‰РёРє."
+        throw "В последнем релизе Git for Windows не найден 64-bit .exe установщик."
     }
 
     return $asset.browser_download_url
@@ -161,12 +161,12 @@ function Save-GitInstaller {
     $installerPath = Join-Path $DownloadDir $fileName
 
     if ((Test-Path $installerPath) -and -not $ForceDownload) {
-        Write-Host "РЈСЃС‚Р°РЅРѕРІС‰РёРє СѓР¶Рµ СЃРєР°С‡Р°РЅ: $installerPath"
+        Write-Host "Установщик уже скачан: $installerPath"
         return $installerPath
     }
 
-    Write-Host "РЎРєР°С‡РёРІР°СЋ Git for Windows: $Url"
-    Write-Host "Р’ С„Р°Р№Р»: $installerPath"
+    Write-Host "Скачиваю Git for Windows: $Url"
+    Write-Host "В файл: $installerPath"
     Invoke-WebRequest -Uri $Url -OutFile $installerPath -UseBasicParsing
 
     return $installerPath
@@ -180,10 +180,10 @@ function Assert-ValidInstallerSignature {
 
     $signature = Get-AuthenticodeSignature -FilePath $InstallerPath
     if ($signature.Status -ne "Valid") {
-        throw "РџРѕРґРїРёСЃСЊ СѓСЃС‚Р°РЅРѕРІС‰РёРєР° Git for Windows РЅРµ РїСЂРѕС€Р»Р° РїСЂРѕРІРµСЂРєСѓ: $($signature.Status). Р¤Р°Р№Р»: $InstallerPath"
+        throw "Подпись установщика Git for Windows не прошла проверку: $($signature.Status). Файл: $InstallerPath"
     }
 
-    Write-Host "РџРѕРґРїРёСЃСЊ СѓСЃС‚Р°РЅРѕРІС‰РёРєР° РїСЂРѕРІРµСЂРµРЅР°: $($signature.SignerCertificate.Subject)"
+    Write-Host "Подпись установщика проверена: $($signature.SignerCertificate.Subject)"
 }
 
 function Install-GitWithInstaller {
@@ -194,7 +194,7 @@ function Install-GitWithInstaller {
     $installerPath = Save-GitInstaller -Url $InstallerUrl
     Assert-ValidInstallerSignature -InstallerPath $installerPath
 
-    Write-Host "Р—Р°РїСѓСЃРєР°СЋ СѓСЃС‚Р°РЅРѕРІС‰РёРє Git for Windows..."
+    Write-Host "Запускаю установщик Git for Windows..."
     $arguments = @(
         "/VERYSILENT",
         "/NORESTART",
@@ -211,32 +211,32 @@ function Install-GitWithInstaller {
         -PassThru
 
     if ($process.ExitCode -ne 0) {
-        throw "РЈСЃС‚Р°РЅРѕРІС‰РёРє Git for Windows Р·Р°РІРµСЂС€РёР»СЃСЏ СЃ РєРѕРґРѕРј $($process.ExitCode)."
+        throw "Установщик Git for Windows завершился с кодом $($process.ExitCode)."
     }
 }
 
 function Read-GitIdentity {
     if ([string]::IsNullOrWhiteSpace($UserName)) {
-        $script:UserName = Read-Host "РРјСЏ РґР»СЏ git user.name"
+        $script:UserName = Read-Host "Имя для git user.name"
     }
 
     if ([string]::IsNullOrWhiteSpace($UserEmail)) {
-        $script:UserEmail = Read-Host "РџРѕС‡С‚Р° РґР»СЏ git user.email"
+        $script:UserEmail = Read-Host "Почта для git user.email"
     }
 
     if ([string]::IsNullOrWhiteSpace($UserName)) {
-        throw "РРјСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ Git РЅРµ СѓРєР°Р·Р°РЅРѕ."
+        throw "Имя пользователя Git не указано."
     }
 
     if ([string]::IsNullOrWhiteSpace($UserEmail)) {
-        throw "РџРѕС‡С‚Р° РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ Git РЅРµ СѓРєР°Р·Р°РЅР°."
+        throw "Почта пользователя Git не указана."
     }
 }
 
 function Set-GitConfig {
     Read-GitIdentity
 
-    Write-Host "РќР°СЃС‚СЂР°РёРІР°СЋ Git РґР»СЏ РіСЂСѓРїРїРѕРІРѕР№ СЂР°Р·СЂР°Р±РѕС‚РєРё..."
+    Write-Host "Настраиваю Git для групповой разработки..."
     Invoke-Git -Arguments @("config", "--global", "user.name", $UserName)
     Invoke-Git -Arguments @("config", "--global", "user.email", $UserEmail)
     Invoke-Git -Arguments @("config", "--global", "core.autocrlf", "true")
@@ -255,12 +255,12 @@ function Set-GitConfig {
         Invoke-Git -Arguments @("lfs", "install")
     }
     catch {
-        Write-Host "[WARN] Git LFS РЅРµ РЅР°Р№РґРµРЅ РІ PATH. РћР±С‹С‡РЅРѕ РѕРЅ СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚СЃСЏ РІРјРµСЃС‚Рµ СЃ Git for Windows." -ForegroundColor Yellow
+        Write-Host "[WARN] Git LFS не найден в PATH. Обычно он устанавливается вместе с Git for Windows." -ForegroundColor Yellow
     }
 
     if ($ConfigureSystem) {
         if (-not (Test-Administrator)) {
-            throw "Р”Р»СЏ РЅР°СЃС‚СЂРѕР№РєРё --system Р·Р°РїСѓСЃС‚РёС‚Рµ PowerShell РѕС‚ РёРјРµРЅРё Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂР°."
+            throw "Для настройки --system запустите PowerShell от имени администратора."
         }
 
         Invoke-Git -Arguments @("config", "--system", "core.longpaths", "true")
@@ -278,33 +278,33 @@ function Ensure-SshKey {
     $sshDir = Split-Path -Parent $sshKeyPath
 
     if (Test-Path $sshKeyPath) {
-        Write-Host "SSH-РєР»СЋС‡ СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚: $sshKeyPath"
+        Write-Host "SSH-ключ уже существует: $sshKeyPath"
     }
     else {
         $sshKeygenPath = Get-SshKeygenPath
         if (-not $sshKeygenPath) {
-            throw "ssh-keygen.exe РЅРµ РЅР°Р№РґРµРЅ. РџСЂРѕРІРµСЂСЊС‚Рµ СѓСЃС‚Р°РЅРѕРІРєСѓ Git for Windows."
+            throw "ssh-keygen.exe не найден. Проверьте установку Git for Windows."
         }
 
         New-Item -ItemType Directory -Path $sshDir -Force | Out-Null
-        Write-Host "РЎРѕР·РґР°СЋ SSH-РєР»СЋС‡ РґР»СЏ Git..."
+        Write-Host "Создаю SSH-ключ для Git..."
         & $sshKeygenPath -t ed25519 -C $UserEmail -f $sshKeyPath
         if ($LASTEXITCODE -ne 0) {
-            throw "ssh-keygen Р·Р°РІРµСЂС€РёР»СЃСЏ СЃ РєРѕРґРѕРј $LASTEXITCODE."
+            throw "ssh-keygen завершился с кодом $LASTEXITCODE."
         }
     }
 
     Write-Host ""
-    Write-Host "РџСЂРёРІР°С‚РЅС‹Р№ РєР»СЋС‡: $sshKeyPath"
-    Write-Host "РџСѓР±Р»РёС‡РЅС‹Р№ РєР»СЋС‡: $sshPublicKeyPath"
-    Write-Host "РџСЂРёРІР°С‚РЅС‹Р№ РєР»СЋС‡ РЅРёРєРѕРјСѓ РЅРµ РїРµСЂРµРґР°РІР°Р№С‚Рµ Рё РЅРµ РєРѕРјРјРёС‚СЊС‚Рµ РІ СЂРµРїРѕР·РёС‚РѕСЂРёР№." -ForegroundColor Yellow
+    Write-Host "Приватный ключ: $sshKeyPath"
+    Write-Host "Публичный ключ: $sshPublicKeyPath"
+    Write-Host "Приватный ключ никому не передавайте и не коммитьте в репозиторий." -ForegroundColor Yellow
     Write-Host ""
-    Write-Host "Р”РѕР±Р°РІСЊС‚Рµ РїСѓР±Р»РёС‡РЅС‹Р№ РєР»СЋС‡ РІ GitLab: РїСЂРѕС„РёР»СЊ > Preferences > SSH Keys."
-    Write-Host "РЎРѕРґРµСЂР¶РёРјРѕРµ РїСѓР±Р»РёС‡РЅРѕРіРѕ РєР»СЋС‡Р°:"
+    Write-Host "Добавьте публичный ключ в GitLab: профиль > Preferences > SSH Keys."
+    Write-Host "Содержимое публичного ключа:"
     Write-Host ""
     Get-Content $sshPublicKeyPath
     Write-Host ""
-    Write-Host "РџРѕСЃР»Рµ РґРѕР±Р°РІР»РµРЅРёСЏ РїСЂРѕРІРµСЂСЊС‚Рµ РїРѕРґРєР»СЋС‡РµРЅРёРµ:"
+    Write-Host "После добавления проверьте подключение:"
     Write-Host "  ssh -T git@$GitLabHost"
 }
 
@@ -315,12 +315,12 @@ if (-not $SkipInstall) {
     }
 }
 else {
-    Write-Host "Р РµР¶РёРј SkipInstall: СѓСЃС‚Р°РЅРѕРІРєР° Git РїСЂРѕРїСѓС‰РµРЅР°."
+    Write-Host "Режим SkipInstall: установка Git пропущена."
 }
 
 Set-GitConfig
 Ensure-SshKey
 
 Write-Host ""
-Write-Host "Git for Windows РЅР°СЃС‚СЂРѕРµРЅ РґР»СЏ РіСЂСѓРїРїРѕРІРѕР№ СЂР°Р·СЂР°Р±РѕС‚РєРё." -ForegroundColor Green
+Write-Host "Git for Windows настроен для групповой разработки." -ForegroundColor Green
 Invoke-Git -Arguments @("--version")

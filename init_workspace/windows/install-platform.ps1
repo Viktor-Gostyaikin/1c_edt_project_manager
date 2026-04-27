@@ -1,4 +1,4 @@
-п»ї#Requires -Version 5.1
+#Requires -Version 5.1
 
 param(
     [string]$Version = "8.5.1.1302",
@@ -7,7 +7,7 @@ param(
     [string]$DownloadDir = "",
     [string]$ExtractDir = "",
     [string]$ReleasePageUrl = "",
-    [string[]]$DistributionFilters = @("РўРµС…РЅРѕР»РѕРіРёС‡РµСЃРєР°СЏ РїР»Р°С‚С„РѕСЂРјР° 1РЎ:РџСЂРµРґРїСЂРёСЏС‚РёСЏ \(64-bit\) РґР»СЏ Windows$"),
+    [string[]]$DistributionFilters = @("Технологическая платформа 1С:Предприятия \(64-bit\) для Windows$"),
     [string[]]$InstallerArguments = @("/S", "USEHWLICENSES=1", "InstallComponents=DESIGNERALLCLIENTS=1 SERVER=1 LANGUAGES=RU,EN"),
     [switch]$DownloadOnly,
     [switch]$ForceDownload,
@@ -66,7 +66,7 @@ function Find-PlatformInstaller {
         }
     }
 
-    throw "РќРµ РЅР°Р№РґРµРЅ СѓСЃС‚Р°РЅРѕРІС‰РёРє РїР»Р°С‚С„РѕСЂРјС‹ РІ РєР°С‚Р°Р»РѕРіРµ: $SearchDir"
+    throw "Не найден установщик платформы в каталоге: $SearchDir"
 }
 
 function Install-HaspDriverFromPlatform {
@@ -77,13 +77,13 @@ function Install-HaspDriverFromPlatform {
 
     Assert-Administrator
 
-    # РќР°Р№С‚Рё СѓСЃС‚Р°РЅРѕРІР»РµРЅРЅСѓСЋ РїР»Р°С‚С„РѕСЂРјСѓ
+    # Найти установленную платформу
     $platformPaths = @()
     $platformPaths += Get-ChildItem "C:\Program Files\1cv8\$PlatformVersion\bin\1cv8.exe" -ErrorAction SilentlyContinue
     $platformPaths += Get-ChildItem "C:\Program Files (x86)\1cv8\$PlatformVersion\bin\1cv8.exe" -ErrorAction SilentlyContinue
 
     if (-not $platformPaths) {
-        Write-Host "РџР»Р°С‚С„РѕСЂРјР° $PlatformVersion РЅРµ РЅР°Р№РґРµРЅР°. РЈСЃС‚Р°РЅРѕРІРєР° РґСЂР°Р№РІРµСЂР° HASP РїСЂРѕРїСѓС‰РµРЅР°." -ForegroundColor Yellow
+        Write-Host "Платформа $PlatformVersion не найдена. Установка драйвера HASP пропущена." -ForegroundColor Yellow
         return
     }
 
@@ -91,14 +91,14 @@ function Install-HaspDriverFromPlatform {
     $haspdinstPath = Join-Path $platformPath "common\haspdinst.exe"
 
     if (-not (Test-Path $haspdinstPath)) {
-        Write-Host "haspdinst.exe РЅРµ РЅР°Р№РґРµРЅ РІ: $haspdinstPath. РЈСЃС‚Р°РЅРѕРІРєР° РґСЂР°Р№РІРµСЂР° HASP РїСЂРѕРїСѓС‰РµРЅР°." -ForegroundColor Yellow
+        Write-Host "haspdinst.exe не найден в: $haspdinstPath. Установка драйвера HASP пропущена." -ForegroundColor Yellow
         return
     }
 
-    Write-Host "РЈСЃС‚Р°РЅР°РІР»РёРІР°СЋ РґСЂР°Р№РІРµСЂ HASP РёР· РїРѕСЃС‚Р°РІРєРё РїР»Р°С‚С„РѕСЂРјС‹: $haspdinstPath"
+    Write-Host "Устанавливаю драйвер HASP из поставки платформы: $haspdinstPath"
 
-    # РЎРЅР°С‡Р°Р»Р° СѓРґР°Р»РёС‚СЊ СЃС‚Р°СЂСѓСЋ РІРµСЂСЃРёСЋ, РµСЃР»Рё РµСЃС‚СЊ
-    Write-Host "РЈРґР°Р»СЏСЋ РїСЂРµРґС‹РґСѓС‰СѓСЋ РІРµСЂСЃРёСЋ РґСЂР°Р№РІРµСЂР° HASP..."
+    # Сначала удалить старую версию, если есть
+    Write-Host "Удаляю предыдущую версию драйвера HASP..."
     $process = Start-Process `
         -FilePath $haspdinstPath `
         -ArgumentList @("-r") `
@@ -107,11 +107,11 @@ function Install-HaspDriverFromPlatform {
         -NoNewWindow
 
     if ($process.ExitCode -ne 0) {
-        Write-Host "РџСЂРµРґСѓРїСЂРµР¶РґРµРЅРёРµ: СѓРґР°Р»РµРЅРёРµ СЃС‚Р°СЂРѕРіРѕ РґСЂР°Р№РІРµСЂР° Р·Р°РІРµСЂС€РёР»РѕСЃСЊ СЃ РєРѕРґРѕРј $($process.ExitCode)." -ForegroundColor Yellow
+        Write-Host "Предупреждение: удаление старого драйвера завершилось с кодом $($process.ExitCode)." -ForegroundColor Yellow
     }
 
-    # РЈСЃС‚Р°РЅРѕРІРёС‚СЊ РЅРѕРІСѓСЋ РІРµСЂСЃРёСЋ
-    Write-Host "РЈСЃС‚Р°РЅР°РІР»РёРІР°СЋ РЅРѕРІСѓСЋ РІРµСЂСЃРёСЋ РґСЂР°Р№РІРµСЂР° HASP..."
+    # Установить новую версию
+    Write-Host "Устанавливаю новую версию драйвера HASP..."
     $process = Start-Process `
         -FilePath $haspdinstPath `
         -ArgumentList @("-i") `
@@ -120,10 +120,10 @@ function Install-HaspDriverFromPlatform {
         -NoNewWindow
 
     if ($process.ExitCode -ne 0) {
-        throw "РЈСЃС‚Р°РЅРѕРІРєР° РґСЂР°Р№РІРµСЂР° HASP Р·Р°РІРµСЂС€РёР»Р°СЃСЊ СЃ РєРѕРґРѕРј $($process.ExitCode)."
+        throw "Установка драйвера HASP завершилась с кодом $($process.ExitCode)."
     }
 
-    Write-Host "Р”СЂР°Р№РІРµСЂ HASP СѓСЃС‚Р°РЅРѕРІР»РµРЅ СѓСЃРїРµС€РЅРѕ." -ForegroundColor Green
+    Write-Host "Драйвер HASP установлен успешно." -ForegroundColor Green
 }
 
 $credential = Get-OneCCredential -User $OneCUser -Password $OneCPassword
@@ -136,10 +136,10 @@ $distribution = Save-OneCDistribution `
     -Password $credential.Password `
     -Force:$ForceDownload
 
-Write-Host "РЎРєР°С‡Р°РЅРЅС‹Р№ РґРёСЃС‚СЂРёР±СѓС‚РёРІ: $($distribution.File)"
+Write-Host "Скачанный дистрибутив: $($distribution.File)"
 
 if ($DownloadOnly) {
-    Write-Host "Р РµР¶РёРј DownloadOnly: СѓСЃС‚Р°РЅРѕРІРєР° РЅРµ Р·Р°РїСѓСЃРєР°РµС‚СЃСЏ."
+    Write-Host "Режим DownloadOnly: установка не запускается."
     exit 0
 }
 
@@ -151,19 +151,19 @@ $installerRoot = Expand-OneCArchive `
 $installerPath = Find-PlatformInstaller -SearchDir $installerRoot -DownloadedFile $distribution.File
 Install-Platform -InstallerPath $installerPath -Arguments $InstallerArguments
 
-# РЈСЃС‚Р°РЅРѕРІРёС‚СЊ РґСЂР°Р№РІРµСЂ HASP РёР· РїРѕСЃС‚Р°РІРєРё РїР»Р°С‚С„РѕСЂРјС‹
+# Установить драйвер HASP из поставки платформы
 Install-HaspDriverFromPlatform -PlatformVersion $Version
 
 if (-not $SkipDependencyCheck) {
     $checkScript = Join-Path $ScriptDir "check-quickstart-deps.cmd"
     if (Test-Path $checkScript) {
-        Write-Host "Р—Р°РїСѓСЃРєР°СЋ РїСЂРѕРІРµСЂРєСѓ Р·Р°РІРёСЃРёРјРѕСЃС‚РµР№..."
+        Write-Host "Запускаю проверку зависимостей..."
         $env:NO_PAUSE = "1"
         & $checkScript
         if ($LASTEXITCODE -ne 0) {
-            throw "РџСЂРѕРІРµСЂРєР° Р·Р°РІРёСЃРёРјРѕСЃС‚РµР№ Р·Р°РІРµСЂС€РёР»Р°СЃСЊ СЃ РѕС€РёР±РєРѕР№."
+            throw "Проверка зависимостей завершилась с ошибкой."
         }
     }
 }
 
-Write-Host "РЈСЃС‚Р°РЅРѕРІРєР° РїР»Р°С‚С„РѕСЂРјС‹ Р·Р°РІРµСЂС€РµРЅР°." -ForegroundColor Green
+Write-Host "Установка платформы завершена." -ForegroundColor Green

@@ -1,4 +1,4 @@
-п»ї#Requires -Version 5.1
+#Requires -Version 5.1
 
 $ErrorActionPreference = "SilentlyContinue"
 
@@ -22,7 +22,7 @@ function Write-CheckResult {
     )
 
     if ([string]::IsNullOrWhiteSpace($Message)) {
-        $Message = "РќРµ СѓРєР°Р·Р°РЅРѕ СЃРѕРѕР±С‰РµРЅРёРµ"
+        $Message = "Не указано сообщение"
     }
 
     switch ($Status) {
@@ -76,7 +76,7 @@ function Test-Platform {
     $candidatePaths = $candidatePaths | Where-Object { $_ } | Select-Object -Unique
 
     if (-not $candidatePaths) {
-        Write-CheckResult "FAIL" "1C:Enterprise Platform" "РЅРµ РЅР°Р№РґРµРЅ 1cv8.exe. РЈСЃС‚Р°РЅРѕРІРёС‚Рµ РїР»Р°С‚С„РѕСЂРјСѓ 1РЎ:РџСЂРµРґРїСЂРёСЏС‚РёРµ $RequiredPlatformVersion Рё РєРѕРјРїРѕРЅРµРЅС‚ РЎРµСЂРІРµСЂ 1РЎ:РџСЂРµРґРїСЂРёСЏС‚РёСЏ."
+        Write-CheckResult "FAIL" "1C:Enterprise Platform" "не найден 1cv8.exe. Установите платформу 1С:Предприятие $RequiredPlatformVersion и компонент Сервер 1С:Предприятия."
         return
     }
 
@@ -115,15 +115,15 @@ function Test-Platform {
     $matching = $installations | Where-Object { $_.Version -eq $RequiredPlatformVersion } | Select-Object -First 1
 
     if ($matching) {
-        Write-CheckResult "OK" "1C:Enterprise Platform" "РЅР°Р№РґРµРЅР° РІРµСЂСЃРёСЏ $($matching.Version): $($matching.Path)"
+        Write-CheckResult "OK" "1C:Enterprise Platform" "найдена версия $($matching.Version): $($matching.Path)"
     }
     else {
         $versions = ($installations | Where-Object { $_.Version } | ForEach-Object { $_.Version.ToString() } | Sort-Object -Unique) -join ", "
         if (-not $versions) {
-            $versions = "РІРµСЂСЃРёСЏ РЅРµ РѕРїСЂРµРґРµР»РµРЅР°"
+            $versions = "версия не определена"
         }
 
-        Write-CheckResult "WARN" "1C:Enterprise Platform" "РЅСѓР¶РЅР° РІРµСЂСЃРёСЏ $RequiredPlatformVersion, РЅР°Р№РґРµРЅРѕ: $versions"
+        Write-CheckResult "WARN" "1C:Enterprise Platform" "нужна версия $RequiredPlatformVersion, найдено: $versions"
     }
 
     $serverBinPath = $null
@@ -132,10 +132,10 @@ function Test-Platform {
     }
 
     if ($serverBinPath -and (Test-Path (Join-Path $serverBinPath "ragent.exe")) -and (Test-Path (Join-Path $serverBinPath "rmngr.exe")) -and (Test-Path (Join-Path $serverBinPath "rphost.exe"))) {
-        Write-CheckResult "OK" "1C Server component" "РЅР°Р№РґРµРЅС‹ ragent.exe, rmngr.exe, rphost.exe РІ $serverBinPath"
+        Write-CheckResult "OK" "1C Server component" "найдены ragent.exe, rmngr.exe, rphost.exe в $serverBinPath"
     }
     else {
-        Write-CheckResult "WARN" "1C Server component" "РЅРµ РЅР°Р№РґРµРЅС‹ ragent.exe, rmngr.exe, rphost.exe РІ РєР°С‚Р°Р»РѕРіРµ bin РїР»Р°С‚С„РѕСЂРјС‹ $RequiredPlatformVersion. РЈР±РµРґРёС‚РµСЃСЊ, С‡С‚Рѕ РїСЂРё СѓСЃС‚Р°РЅРѕРІРєРµ РІС‹Р±СЂР°РЅ РєРѕРјРїРѕРЅРµРЅС‚ РЎРµСЂРІРµСЂ 1РЎ:РџСЂРµРґРїСЂРёСЏС‚РёСЏ."
+        Write-CheckResult "WARN" "1C Server component" "не найдены ragent.exe, rmngr.exe, rphost.exe в каталоге bin платформы $RequiredPlatformVersion. Убедитесь, что при установке выбран компонент Сервер 1С:Предприятия."
     }
 }
 
@@ -156,7 +156,7 @@ function Test-Edt {
     $candidatePaths = $candidatePaths | Where-Object { $_ } | Select-Object -Unique
 
     if (-not $candidatePaths) {
-        Write-CheckResult "FAIL" "1C:EDT" "РЅРµ РЅР°Р№РґРµРЅ 1cedtstart.exe РёР»Рё 1cedt.exe. РЈСЃС‚Р°РЅРѕРІРёС‚Рµ 1C:EDT $RequiredEdtVersion."
+        Write-CheckResult "FAIL" "1C:EDT" "не найден 1cedtstart.exe или 1cedt.exe. Установите 1C:EDT $RequiredEdtVersion."
         return
     }
 
@@ -183,22 +183,22 @@ function Test-Edt {
     $matching = $installations | Where-Object { $_.Version -eq $RequiredEdtVersion } | Select-Object -First 1
 
     if ($matching) {
-        Write-CheckResult "OK" "1C:EDT" "РЅР°Р№РґРµРЅР° РІРµСЂСЃРёСЏ $($matching.Version): $($matching.Path)"
+        Write-CheckResult "OK" "1C:EDT" "найдена версия $($matching.Version): $($matching.Path)"
     }
     else {
         $versions = ($installations | Where-Object { $_.Version } | ForEach-Object { $_.Version.ToString() } | Sort-Object -Unique) -join ", "
         if (-not $versions) {
-            $versions = "РІРµСЂСЃРёСЏ РЅРµ РѕРїСЂРµРґРµР»РµРЅР°"
+            $versions = "версия не определена"
         }
 
-        Write-CheckResult "WARN" "1C:EDT" "РЅСѓР¶РЅР° РІРµСЂСЃРёСЏ $RequiredEdtVersion, РЅР°Р№РґРµРЅРѕ: $versions"
+        Write-CheckResult "WARN" "1C:EDT" "нужна версия $RequiredEdtVersion, найдено: $versions"
     }
 }
 
 function Test-Git {
     $gitPath = Get-CommandPath "git.exe"
     if (-not $gitPath) {
-        Write-CheckResult "FAIL" "Git" "git.exe РЅРµ РЅР°Р№РґРµРЅ РІ PATH. РЈСЃС‚Р°РЅРѕРІРёС‚Рµ Git for Windows."
+        Write-CheckResult "FAIL" "Git" "git.exe не найден в PATH. Установите Git for Windows."
         return
     }
 
@@ -212,7 +212,7 @@ function Test-Git {
         Write-CheckResult "OK" "Git line endings" "core.autocrlf=true, core.safecrlf=true"
     }
     else {
-        Write-CheckResult "WARN" "Git line endings" "РґР»СЏ Windows РѕР¶РёРґР°РµС‚СЃСЏ: git config --global core.autocrlf true; git config --global core.safecrlf true"
+        Write-CheckResult "WARN" "Git line endings" "для Windows ожидается: git config --global core.autocrlf true; git config --global core.safecrlf true"
     }
 
     $lfsVersion = (& git lfs version) 2>$null | Out-String
@@ -220,14 +220,14 @@ function Test-Git {
         Write-CheckResult "OK" "Git LFS" $lfsVersion.Trim()
     }
     else {
-        Write-CheckResult "WARN" "Git LFS" "git lfs РЅРµ РЅР°Р№РґРµРЅ РёР»Рё РЅРµ РЅР°СЃС‚СЂРѕРµРЅ. Р”Р»СЏ Git for Windows РѕР±С‹С‡РЅРѕ РїРѕРјРѕРіР°РµС‚ РєРѕРјР°РЅРґР°: git lfs install"
+        Write-CheckResult "WARN" "Git LFS" "git lfs не найден или не настроен. Для Git for Windows обычно помогает команда: git lfs install"
     }
 }
 
 function Test-Java {
     $javaPath = Get-CommandPath "java.exe"
     if (-not $javaPath) {
-        Write-CheckResult "WARN" "Java" "java.exe РЅРµ РЅР°Р№РґРµРЅ РІ PATH. Р•СЃР»Рё JDK СѓСЃС‚Р°РЅРѕРІР»РµРЅ РІРјРµСЃС‚Рµ СЃ EDT, СЌС‚Рѕ РјРѕР¶РµС‚ Р±С‹С‚СЊ РЅРѕСЂРјР°Р»СЊРЅРѕ; РёРЅР°С‡Рµ СѓСЃС‚Р°РЅРѕРІРёС‚Рµ JDK $RequiredJavaMajorVersion РёР»Рё РІС‹С€Рµ."
+        Write-CheckResult "WARN" "Java" "java.exe не найден в PATH. Если JDK установлен вместе с EDT, это может быть нормально; иначе установите JDK $RequiredJavaMajorVersion или выше."
         return
     }
 
@@ -235,31 +235,31 @@ function Test-Java {
     $match = [regex]::Match($versionOutput, 'version "(\d+)(?:\.\d+)?')
 
     if (-not $match.Success) {
-        Write-CheckResult "WARN" "Java" "java.exe РЅР°Р№РґРµРЅ, РЅРѕ РІРµСЂСЃРёСЏ РЅРµ РѕРїСЂРµРґРµР»РµРЅР°: $javaPath"
+        Write-CheckResult "WARN" "Java" "java.exe найден, но версия не определена: $javaPath"
         return
     }
 
     $majorVersion = [int]$match.Groups[1].Value
 
     if ($majorVersion -ge $RequiredJavaMajorVersion) {
-        Write-CheckResult "OK" "Java" "РЅР°Р№РґРµРЅР° РІРµСЂСЃРёСЏ $majorVersion РёР»Рё РІС‹С€Рµ: $javaPath"
+        Write-CheckResult "OK" "Java" "найдена версия $majorVersion или выше: $javaPath"
     }
     else {
-        Write-CheckResult "WARN" "Java" "РЅСѓР¶РЅР° РІРµСЂСЃРёСЏ $RequiredJavaMajorVersion РёР»Рё РІС‹С€Рµ, РЅР°Р№РґРµРЅР° ${majorVersion}: $javaPath"
+        Write-CheckResult "WARN" "Java" "нужна версия $RequiredJavaMajorVersion или выше, найдена ${majorVersion}: $javaPath"
     }
 }
 
 function Test-Hasp {
     $haspService = Get-Service | Where-Object { $_.Name -like "*Sentinel*" -or $_.Name -like "*HASP*" } | Select-Object -First 1
     if ($haspService) {
-        Write-CheckResult "OK" "HASP Driver" "РЅР°Р№РґРµРЅР° СЃР»СѓР¶Р±Р° '$($haspService.Name)' СЃРѕ СЃС‚Р°С‚СѓСЃРѕРј $($haspService.Status)"
+        Write-CheckResult "OK" "HASP Driver" "найдена служба '$($haspService.Name)' со статусом $($haspService.Status)"
     }
     else {
-        Write-CheckResult "WARN" "HASP Driver" "СЃР»СѓР¶Р±Р° РґСЂР°Р№РІРµСЂР° HASP РЅРµ РЅР°Р№РґРµРЅР°. РЈСЃС‚Р°РЅРѕРІРёС‚Рµ РґСЂР°Р№РІРµСЂ HASP РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ Р°РїРїР°СЂР°С‚РЅС‹РјРё РєР»СЋС‡Р°РјРё."
+        Write-CheckResult "WARN" "HASP Driver" "служба драйвера HASP не найдена. Установите драйвер HASP для работы с аппаратными ключами."
     }
 }
 
-Write-Host "РџСЂРѕРІРµСЂРєР° Р·Р°РІРёСЃРёРјРѕСЃС‚РµР№ Р±С‹СЃС‚СЂРѕРіРѕ СЃС‚Р°СЂС‚Р°" -ForegroundColor Cyan
+Write-Host "Проверка зависимостей быстрого старта" -ForegroundColor Cyan
 Write-Host ""
 
 try { Test-Platform } catch { Write-Host "Error in Test-Platform: $($_.Exception.Message)" -ForegroundColor Red; throw }
@@ -270,9 +270,9 @@ try { Test-Hasp } catch { Write-Host "Error in Test-Hasp: $($_.Exception.Message
 
 Write-Host ""
 if ($script:HasErrors) {
-    Write-Host "РџСЂРѕРІРµСЂРєР° Р·Р°РІРµСЂС€РµРЅР° СЃ РѕС€РёР±РєР°РјРё. РЈСЃС‚Р°РЅРѕРІРёС‚Рµ РѕС‚СЃСѓС‚СЃС‚РІСѓСЋС‰РёРµ РѕР±СЏР·Р°С‚РµР»СЊРЅС‹Рµ РєРѕРјРїРѕРЅРµРЅС‚С‹." -ForegroundColor Red
+    Write-Host "Проверка завершена с ошибками. Установите отсутствующие обязательные компоненты." -ForegroundColor Red
     exit 1
 }
 
-Write-Host "РџСЂРѕРІРµСЂРєР° Р·Р°РІРµСЂС€РµРЅР°. РџСЂРµРґСѓРїСЂРµР¶РґРµРЅРёСЏ С‚СЂРµР±СѓСЋС‚ СЂСѓС‡РЅРѕР№ РїСЂРѕРІРµСЂРєРё, РЅРѕ РЅРµ РІСЃРµРіРґР° Р±Р»РѕРєРёСЂСѓСЋС‚ Р·Р°РїСѓСЃРє." -ForegroundColor Green
+Write-Host "Проверка завершена. Предупреждения требуют ручной проверки, но не всегда блокируют запуск." -ForegroundColor Green
 exit 0
