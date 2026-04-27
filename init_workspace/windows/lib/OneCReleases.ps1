@@ -539,18 +539,12 @@ function Save-OneCFileWithProgress {
                     if ($totalBytes -gt 0) {
                         $percent = [Math]::Min(100, [Math]::Round(($downloadedBytes / $totalBytes) * 100, 1))
                         $status = "$status из $(Format-FileSize $totalBytes), $(Format-FileSize $speed)/с"
-                        Write-Progress -Activity $activity -Status $status -PercentComplete $percent
+                        Write-Progress -Activity $activity -Status $status -CurrentOperation $fileName -PercentComplete $percent
                     }
                     else {
                         $status = "$status, $(Format-FileSize $speed)/с"
-                        Write-Progress -Activity $activity -Status $status
+                        Write-Progress -Activity $activity -Status $status -CurrentOperation $fileName
                     }
-
-                    Write-DownloadProgressLine `
-                        -DownloadedBytes $downloadedBytes `
-                        -TotalBytes $totalBytes `
-                        -SpeedBytesPerSecond $speed `
-                        -FileName $fileName
 
                     $lastProgressAt = $now
                 }
