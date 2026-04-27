@@ -14,8 +14,9 @@ param(
     [switch]$ForceExtract
 )
 
-# Установка кодировки UTF-8 для правильного отображения русского текста
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+# Set UTF-8 encoding for proper Russian text display
+[System.Console]::OutputEncoding = [System.Text.Encoding]::GetEncoding('utf-8')
+[System.IO.StreamWriter]::DefaultEncoding = [System.Text.Encoding]::UTF8
 
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version 2.0
