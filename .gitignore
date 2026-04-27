@@ -1,0 +1,4 @@
+/build/
+init_workspace/windows/check-quickstart-deps.exe
+*.log
+*.tmp
