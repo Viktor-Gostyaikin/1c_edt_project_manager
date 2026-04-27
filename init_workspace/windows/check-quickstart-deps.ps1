@@ -243,11 +243,11 @@ function Test-Hasp {
 Write-Host "Проверка зависимостей быстрого старта" -ForegroundColor Cyan
 Write-Host ""
 
-Test-Platform
-Test-Edt
-Test-Git
-Test-Java
-Test-Hasp
+try { Test-Platform } catch { Write-Host "Error in Test-Platform: $($_.Exception.Message)" -ForegroundColor Red; throw }
+try { Test-Edt } catch { Write-Host "Error in Test-Edt: $($_.Exception.Message)" -ForegroundColor Red; throw }
+try { Test-Git } catch { Write-Host "Error in Test-Git: $($_.Exception.Message)" -ForegroundColor Red; throw }
+try { Test-Java } catch { Write-Host "Error in Test-Java: $($_.Exception.Message)" -ForegroundColor Red; throw }
+try { Test-Hasp } catch { Write-Host "Error in Test-Hasp: $($_.Exception.Message)" -ForegroundColor Red; throw }
 
 Write-Host ""
 if ($script:HasErrors) {
