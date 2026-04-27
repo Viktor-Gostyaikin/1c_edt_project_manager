@@ -205,6 +205,82 @@ function Get-FileNameFromOneCDownloadUri {
     return [System.IO.Path]::GetFileName(([uri]$Uri).AbsolutePath)
 }
 
+function Get-OneCFileNameFromDistributionHtml {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Html
+    )
+
+    $fileNameMatch = [regex]::Match(
+        $Html,
+        'Имя\s+файла:\s*</td>\s*<td>\s*([^<]+?)\s*</td>',
+        [System.Text.RegularExpressions.RegexOptions]::IgnoreCase
+    )
+
+    if ($fileNameMatch.Success) {
+        return [System.Net.WebUtility]::HtmlDecode($fileNameMatch.Groups[1].Value).Trim()
+    }
+
+    return ""
+}
+
+function Get-OneCSha512FromDistributionHtml {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Html
+    )
+
+    $copyMatch = [regex]::Match(
+        $Html,
+        "copyToClipboard\('([a-fA-F0-9]{128})'",
+        [System.Text.RegularExpressions.RegexOptions]::IgnoreCase
+    )
+
+    if ($copyMatch.Success) {
+        return $copyMatch.Groups[1].Value.ToLowerInvariant()
+    }
+
+    $rowMatch = [regex]::Match(
+        $Html,
+        'Контрольная\s+сумма\s+SHA-512:\s*</td>\s*<td[^>]*>.*?([a-fA-F0-9]{128}).*?</td>',
+        [System.Text.RegularExpressions.RegexOptions]::IgnoreCase -bor [System.Text.RegularExpressions.RegexOptions]::Singleline
+    )
+
+    if ($rowMatch.Success) {
+        return $rowMatch.Groups[1].Value.ToLowerInvariant()
+    }
+
+    return ""
+}
+
+function Assert-FileSha512 {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$FilePath,
+
+        [string]$ExpectedSha512 = ""
+    )
+
+    if ([string]::IsNullOrWhiteSpace($ExpectedSha512)) {
+        Write-Host "Контрольная сумма SHA-512 на странице дистрибутива не найдена, проверка пропущена." -ForegroundColor Yellow
+        return
+    }
+
+    if ($ExpectedSha512 -notmatch '^[a-fA-F0-9]{128}$') {
+        throw "Некорректная контрольная сумма SHA-512 на странице дистрибутива: $ExpectedSha512"
+    }
+
+    Write-Host "Проверяю контрольную сумму SHA-512..."
+    $actualSha512 = (Get-FileHash -Path $FilePath -Algorithm SHA512).Hash.ToLowerInvariant()
+    $expected = $ExpectedSha512.ToLowerInvariant()
+
+    if ($actualSha512 -ne $expected) {
+        throw "Контрольная сумма SHA-512 не совпадает. Файл: $FilePath. Ожидалось: $expected. Получено: $actualSha512"
+    }
+
+    Write-Host "Контрольная сумма SHA-512 совпадает." -ForegroundColor Green
+}
+
 function Format-FileSize {
     param(
         [Parameter(Mandatory = $true)]
@@ -426,16 +502,23 @@ function Get-OneCDistributionLink {
             }
 
             $downloadUri = Resolve-OneCUri -BaseUri $distributionPageUri -RelativeOrAbsoluteUri $downloadMatch.Groups[1].Value
-            $fileName = Get-FileNameFromOneCDownloadUri $distributionPageUri
+            $fileName = Get-OneCFileNameFromDistributionHtml $distributionHtml
+            if ([string]::IsNullOrWhiteSpace($fileName)) {
+                $fileName = Get-FileNameFromOneCDownloadUri $distributionPageUri
+            }
+
             if ([string]::IsNullOrWhiteSpace($fileName) -or -not [System.IO.Path]::GetExtension($fileName)) {
                 $fileName = Get-FileNameFromOneCDownloadUri $downloadUri
             }
+
+            $sha512 = Get-OneCSha512FromDistributionHtml $distributionHtml
 
             return [pscustomobject]@{
                 Title = $title
                 DistributionPageUri = $distributionPageUri
                 DownloadUri = $downloadUri
                 FileName = $fileName
+                Sha512 = $sha512
             }
         }
     }
@@ -476,6 +559,7 @@ function Save-OneCDistribution {
 
     if ((Test-Path $destinationFile) -and -not $Force) {
         Write-Host "Файл уже скачан: $destinationFile"
+        Assert-FileSha512 -FilePath $destinationFile -ExpectedSha512 $link.Sha512
     }
     else {
         Write-Host "Скачиваю: $($link.DownloadUri)"
@@ -484,6 +568,7 @@ function Save-OneCDistribution {
             -Uri $link.DownloadUri `
             -Session $session `
             -DestinationFile $destinationFile
+        Assert-FileSha512 -FilePath $destinationFile -ExpectedSha512 $link.Sha512
     }
 
     return [pscustomobject]@{
@@ -491,6 +576,7 @@ function Save-OneCDistribution {
         File = $destinationFile
         DownloadUri = $link.DownloadUri
         DistributionPageUri = $link.DistributionPageUri
+        Sha512 = $link.Sha512
     }
 }
 
