@@ -281,6 +281,25 @@ function Assert-FileSha512 {
     Write-Host "Контрольная сумма SHA-512 совпадает." -ForegroundColor Green
 }
 
+function Assert-ArchiveExtractorAvailable {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$FileName
+    )
+
+    $extension = [System.IO.Path]::GetExtension($FileName)
+    if ($extension -ine ".rar") {
+        return
+    }
+
+    $extractor = Get-ArchiveExtractor
+    if (-not $extractor) {
+        throw "Для RAR-дистрибутива нужен 7-Zip, WinRAR или UnRAR. Установите 7-Zip и повторите запуск."
+    }
+
+    Write-Host "Найден распаковщик RAR: $($extractor.Type) ($($extractor.Path))"
+}
+
 function Format-FileSize {
     param(
         [Parameter(Mandatory = $true)]
@@ -556,6 +575,7 @@ function Save-OneCDistribution {
 
     New-Item -ItemType Directory -Path $DestinationDir -Force | Out-Null
     $destinationFile = Join-Path $DestinationDir $link.FileName
+    Assert-ArchiveExtractorAvailable -FileName $link.FileName
 
     if ((Test-Path $destinationFile) -and -not $Force) {
         Write-Host "Файл уже скачан: $destinationFile"
