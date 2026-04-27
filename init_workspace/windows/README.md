@@ -22,6 +22,12 @@ copy tools\init_workspace\windows\local.vars.example.ps1 tools\init_workspace\wi
 
 Скрипты скачивают дистрибутивы с `https://releases.1c.ru` по прямым страницам релизов и запускают установку.
 
+Дистрибутив платформы поставляется в RAR-архиве. Перед установкой платформы можно установить 7-Zip:
+
+```cmd
+tools\init_workspace\windows\install-archiver.cmd
+```
+
 Требуется учетная запись 1С с доступом к дистрибутивам. Логин и пароль можно передать параметрами:
 
 ```cmd
