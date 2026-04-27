@@ -402,49 +402,6 @@ function Format-Duration {
     return "{0:00}:{1:00}" -f $timeSpan.Minutes, $timeSpan.Seconds
 }
 
-function Write-DownloadProgressLine {
-    param(
-        [Parameter(Mandatory = $true)]
-        [double]$DownloadedBytes,
-
-        [double]$TotalBytes = -1,
-
-        [double]$SpeedBytesPerSecond = 0,
-
-        [string]$FileName = ""
-    )
-
-    $barWidth = 28
-    $percentText = " --.-%"
-    $bar = ("#" * 8).PadRight($barWidth, ".")
-    $etaText = "--:--"
-
-    if ($TotalBytes -gt 0) {
-        $percent = [Math]::Min(100, [Math]::Max(0, ($DownloadedBytes / $TotalBytes) * 100))
-        $filledWidth = [Math]::Min($barWidth, [Math]::Floor(($percent / 100) * $barWidth))
-        $bar = ("#" * $filledWidth).PadRight($barWidth, ".")
-        $percentText = "{0,5:N1}%" -f $percent
-
-        if ($SpeedBytesPerSecond -gt 0) {
-            $etaText = Format-Duration (($TotalBytes - $DownloadedBytes) / $SpeedBytesPerSecond)
-        }
-    }
-
-    $downloaded = Format-FileSize $DownloadedBytes
-    $total = "неизвестно"
-    if ($TotalBytes -gt 0) {
-        $total = Format-FileSize $TotalBytes
-    }
-
-    $speed = Format-FileSize $SpeedBytesPerSecond
-    $message = "`r[$bar] $percentText  $downloaded / $total  $speed/с  осталось $etaText"
-    if (-not [string]::IsNullOrWhiteSpace($FileName)) {
-        $message = "$message  $FileName"
-    }
-
-    Write-Host $message -NoNewline
-}
-
 function Save-OneCFileWithProgress {
     param(
         [Parameter(Mandatory = $true)]
