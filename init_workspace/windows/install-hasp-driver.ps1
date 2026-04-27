@@ -7,7 +7,7 @@ param(
     [string]$DownloadDir = "",
     [string]$ExtractDir = "",
     [string]$ReleasePageUrl = "",
-    [string[]]$DistributionFilters = @("Sentinel LDK Run-time GUI$"),
+    [string[]]$DistributionFilters = @("Драйвер для Windows (графический интерфейс)"),
     [string[]]$InstallerArguments = @("/S"),
     [switch]$DownloadOnly,
     [switch]$ForceDownload,
