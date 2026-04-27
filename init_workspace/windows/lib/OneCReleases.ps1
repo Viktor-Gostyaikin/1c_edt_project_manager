@@ -332,15 +332,27 @@ function Install-ArchiveExtractorAfterPrompt {
         throw "Архиватор не установлен. Установите 7-Zip, WinRAR или UnRAR и повторите запуск."
     }
 
-    Write-Host "Запускаю установку 7-Zip..."
+    $repoRoot = (Resolve-Path (Join-Path $script:OneCReleasesWindowsDir "..\..\..")).Path
+    $logDir = Join-Path $repoRoot "build\logs"
+    New-Item -ItemType Directory -Path $logDir -Force | Out-Null
+
+    $stdoutLog = Join-Path $logDir "install-archiver.out.log"
+    $stderrLog = Join-Path $logDir "install-archiver.err.log"
+    Remove-Item $stdoutLog, $stderrLog -Force -ErrorAction SilentlyContinue
+
+    Write-Host "Устанавливаю 7-Zip. Это может занять несколько минут..."
+    Write-Host "Подробный вывод установки будет сохранен в: $logDir"
     $process = Start-Process `
         -FilePath "powershell.exe" `
         -ArgumentList @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "`"$installScript`"") `
+        -WindowStyle Hidden `
+        -RedirectStandardOutput $stdoutLog `
+        -RedirectStandardError $stderrLog `
         -Wait `
         -PassThru
 
     if ($process.ExitCode -ne 0) {
-        throw "Установка 7-Zip завершилась с кодом $($process.ExitCode). Установите архиватор вручную и повторите запуск."
+        throw "Установка 7-Zip завершилась с кодом $($process.ExitCode). Проверьте лог: $stderrLog. Установите архиватор вручную и повторите запуск."
     }
 
     $extractor = Get-ArchiveExtractor
