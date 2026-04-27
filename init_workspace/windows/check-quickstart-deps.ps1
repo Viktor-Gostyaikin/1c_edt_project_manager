@@ -21,6 +21,10 @@ function Write-CheckResult {
         [string]$Message
     )
 
+    if ([string]::IsNullOrWhiteSpace($Message)) {
+        $Message = "Не указано сообщение"
+    }
+
     switch ($Status) {
         "OK" { $color = "Green"; $prefix = "[OK]" }
         "WARN" { $color = "Yellow"; $prefix = "[WARN]" }
