@@ -222,7 +222,7 @@ function Test-Java {
         Write-CheckResult "OK" "Java" "найдена версия $majorVersion или выше: $javaPath"
     }
     else {
-        Write-CheckResult "WARN" "Java" "нужна версия $RequiredJavaMajorVersion или выше, найдена $majorVersion: $javaPath"
+        Write-CheckResult "WARN" "Java" "нужна версия $RequiredJavaMajorVersion или выше, найдена ${majorVersion}: $javaPath"
     }
 }
 
