@@ -426,7 +426,10 @@ function Get-OneCDistributionLink {
             }
 
             $downloadUri = Resolve-OneCUri -BaseUri $distributionPageUri -RelativeOrAbsoluteUri $downloadMatch.Groups[1].Value
-            $fileName = Get-FileNameFromOneCDownloadUri $downloadUri
+            $fileName = Get-FileNameFromOneCDownloadUri $distributionPageUri
+            if ([string]::IsNullOrWhiteSpace($fileName) -or -not [System.IO.Path]::GetExtension($fileName)) {
+                $fileName = Get-FileNameFromOneCDownloadUri $downloadUri
+            }
 
             return [pscustomobject]@{
                 Title = $title
@@ -511,8 +514,143 @@ function Expand-OneCArchive {
         return $DestinationDir
     }
 
-    Write-Host "Файл не является zip-архивом, распаковка пропущена: $ArchivePath"
+    if ($extension -ieq ".rar") {
+        Write-Host "Распаковываю RAR-архив: $ArchivePath"
+
+        $extractor = Get-ArchiveExtractor
+        if (-not $extractor) {
+            throw "Для распаковки RAR-дистрибутива нужен 7-Zip, WinRAR или UnRAR. Установите 7-Zip и повторите запуск."
+        }
+
+        Invoke-ArchiveExtractor `
+            -Extractor $extractor `
+            -ArchivePath $ArchivePath `
+            -DestinationDir $DestinationDir
+
+        return $DestinationDir
+    }
+
+    Write-Host "Файл не является архивом zip/rar, распаковка пропущена: $ArchivePath"
     return (Split-Path -Parent $ArchivePath)
+}
+
+function Get-ExistingPath {
+    param(
+        [string[]]$Paths = @()
+    )
+
+    foreach ($path in $Paths) {
+        if (-not [string]::IsNullOrWhiteSpace($path) -and (Test-Path $path)) {
+            return $path
+        }
+    }
+
+    return ""
+}
+
+function Get-ArchiveExtractor {
+    $sevenZipCommand = Get-Command "7z.exe" -ErrorAction SilentlyContinue
+    if ($sevenZipCommand) {
+        return [pscustomobject]@{
+            Type = "7Zip"
+            Path = $sevenZipCommand.Source
+        }
+    }
+
+    $sevenZipStandaloneCommand = Get-Command "7za.exe" -ErrorAction SilentlyContinue
+    if ($sevenZipStandaloneCommand) {
+        return [pscustomobject]@{
+            Type = "7Zip"
+            Path = $sevenZipStandaloneCommand.Source
+        }
+    }
+
+    $programFiles = [Environment]::GetFolderPath("ProgramFiles")
+    $programFilesX86 = [Environment]::GetEnvironmentVariable("ProgramFiles(x86)")
+
+    $sevenZipPaths = @()
+    if (-not [string]::IsNullOrWhiteSpace($programFiles)) {
+        $sevenZipPaths += (Join-Path $programFiles "7-Zip\7z.exe")
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($programFilesX86)) {
+        $sevenZipPaths += (Join-Path $programFilesX86 "7-Zip\7z.exe")
+    }
+
+    $sevenZipPath = Get-ExistingPath -Paths $sevenZipPaths
+    if ($sevenZipPath) {
+        return [pscustomobject]@{
+            Type = "7Zip"
+            Path = $sevenZipPath
+        }
+    }
+
+    $winRarCommand = Get-Command "WinRAR.exe" -ErrorAction SilentlyContinue
+    if ($winRarCommand) {
+        return [pscustomobject]@{
+            Type = "WinRAR"
+            Path = $winRarCommand.Source
+        }
+    }
+
+    $unRarCommand = Get-Command "UnRAR.exe" -ErrorAction SilentlyContinue
+    if ($unRarCommand) {
+        return [pscustomobject]@{
+            Type = "UnRAR"
+            Path = $unRarCommand.Source
+        }
+    }
+
+    $winRarPaths = @()
+    if (-not [string]::IsNullOrWhiteSpace($programFiles)) {
+        $winRarPaths += (Join-Path $programFiles "WinRAR\WinRAR.exe")
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($programFilesX86)) {
+        $winRarPaths += (Join-Path $programFilesX86 "WinRAR\WinRAR.exe")
+    }
+
+    $winRarPath = Get-ExistingPath -Paths $winRarPaths
+    if ($winRarPath) {
+        return [pscustomobject]@{
+            Type = "WinRAR"
+            Path = $winRarPath
+        }
+    }
+
+    return $null
+}
+
+function Invoke-ArchiveExtractor {
+    param(
+        [Parameter(Mandatory = $true)]
+        [pscustomobject]$Extractor,
+
+        [Parameter(Mandatory = $true)]
+        [string]$ArchivePath,
+
+        [Parameter(Mandatory = $true)]
+        [string]$DestinationDir
+    )
+
+    switch ($Extractor.Type) {
+        "7Zip" {
+            & $Extractor.Path x $ArchivePath "-o$DestinationDir" -y | Out-Host
+        }
+        "WinRAR" {
+            & $Extractor.Path x -ibck -y $ArchivePath "$DestinationDir\" | Out-Host
+        }
+        "UnRAR" {
+            & $Extractor.Path x -y $ArchivePath "$DestinationDir\" | Out-Host
+        }
+        default {
+            throw "Неизвестный распаковщик архива: $($Extractor.Type)"
+        }
+    }
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "Распаковщик $($Extractor.Type) завершился с кодом $LASTEXITCODE."
+    }
 }
 
 function Assert-Administrator {
