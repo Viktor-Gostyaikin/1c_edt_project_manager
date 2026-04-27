@@ -628,11 +628,12 @@ function Get-OneCDistributionLink {
     foreach ($filter in $DistributionFilters) {
         foreach ($anchor in $anchors) {
             $title = [System.Net.WebUtility]::HtmlDecode($anchor.Groups[2].Value).Trim()
-            if ($title -notmatch $filter) {
+            $href = $anchor.Groups[1].Value
+            if ($title -notmatch $filter -and $href -notmatch $filter) {
                 continue
             }
 
-            $distributionPageUri = Resolve-OneCUri -BaseUri $ReleasePageUrl -RelativeOrAbsoluteUri $anchor.Groups[1].Value
+            $distributionPageUri = Resolve-OneCUri -BaseUri $ReleasePageUrl -RelativeOrAbsoluteUri $href
             Write-Host "Найден дистрибутив: $title"
             Write-Host "Открываю страницу скачивания: $distributionPageUri"
 

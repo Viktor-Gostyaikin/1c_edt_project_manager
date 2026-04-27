@@ -7,7 +7,7 @@ param(
     [string]$DownloadDir = "",
     [string]$ExtractDir = "",
     [string]$ReleasePageUrl = "",
-    [string[]]$DistributionFilters = @("Драйвер для Windows (графический интерфейс)"),
+    [string[]]$DistributionFilters = @("sentinel_ldk_run_time_gui.zip"),
     [string[]]$InstallerArguments = @("/S"),
     [switch]$DownloadOnly,
     [switch]$ForceDownload,
