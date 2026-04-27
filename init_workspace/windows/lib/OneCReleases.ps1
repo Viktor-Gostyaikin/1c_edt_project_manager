@@ -7,6 +7,8 @@ Set-StrictMode -Version 2.0
     [Net.SecurityProtocolType]::Tls12
 )
 
+$script:OneCReleasesWindowsDir = Split-Path -Parent $PSScriptRoot
+
 function ConvertTo-PlainText {
     param(
         [Parameter(Mandatory = $true)]
@@ -312,10 +314,41 @@ function Assert-ArchiveExtractorAvailable {
 
     $extractor = Get-ArchiveExtractor
     if (-not $extractor) {
-        throw "Для RAR-дистрибутива нужен 7-Zip, WinRAR или UnRAR. Установите 7-Zip и повторите запуск."
+        $extractor = Install-ArchiveExtractorAfterPrompt
     }
 
     Write-Host "Найден распаковщик RAR: $($extractor.Type) ($($extractor.Path))"
+}
+
+function Install-ArchiveExtractorAfterPrompt {
+    $installScript = Join-Path $script:OneCReleasesWindowsDir "install-archiver.ps1"
+    if (-not (Test-Path $installScript)) {
+        throw "Для RAR-дистрибутива нужен 7-Zip, WinRAR или UnRAR. Скрипт установки архиватора не найден: $installScript"
+    }
+
+    Write-Host "Для RAR-дистрибутива нужен 7-Zip, WinRAR или UnRAR." -ForegroundColor Yellow
+    $answer = Read-Host "Установить 7-Zip сейчас через winget? [Y/n]"
+    if ($answer -and $answer -notmatch "^(y|yes|д|да)$") {
+        throw "Архиватор не установлен. Установите 7-Zip, WinRAR или UnRAR и повторите запуск."
+    }
+
+    Write-Host "Запускаю установку 7-Zip..."
+    $process = Start-Process `
+        -FilePath "powershell.exe" `
+        -ArgumentList @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "`"$installScript`"") `
+        -Wait `
+        -PassThru
+
+    if ($process.ExitCode -ne 0) {
+        throw "Установка 7-Zip завершилась с кодом $($process.ExitCode). Установите архиватор вручную и повторите запуск."
+    }
+
+    $extractor = Get-ArchiveExtractor
+    if (-not $extractor) {
+        throw "7-Zip установлен, но архиватор пока не найден. Перезапустите терминал или проверьте каталог C:\Program Files\7-Zip."
+    }
+
+    return $extractor
 }
 
 function Format-FileSize {
@@ -652,7 +685,7 @@ function Expand-OneCArchive {
 
         $extractor = Get-ArchiveExtractor
         if (-not $extractor) {
-            throw "Для распаковки RAR-дистрибутива нужен 7-Zip, WinRAR или UnRAR. Установите 7-Zip и повторите запуск."
+            $extractor = Install-ArchiveExtractorAfterPrompt
         }
 
         Invoke-ArchiveExtractor `
