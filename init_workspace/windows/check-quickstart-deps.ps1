@@ -230,6 +230,16 @@ function Test-Java {
     }
 }
 
+function Test-Hasp {
+    $haspService = Get-Service | Where-Object { $_.Name -like "*Sentinel*" -or $_.Name -like "*HASP*" } | Select-Object -First 1
+    if ($haspService) {
+        Write-CheckResult "OK" "HASP Driver" "найдена служба '$($haspService.Name)' со статусом $($haspService.Status)"
+    }
+    else {
+        Write-CheckResult "WARN" "HASP Driver" "служба драйвера HASP не найдена. Установите драйвер HASP для работы с аппаратными ключами."
+    }
+}
+
 Write-Host "Проверка зависимостей быстрого старта" -ForegroundColor Cyan
 Write-Host ""
 
@@ -237,6 +247,7 @@ Test-Platform
 Test-Edt
 Test-Git
 Test-Java
+Test-Hasp
 
 Write-Host ""
 if ($script:HasErrors) {
