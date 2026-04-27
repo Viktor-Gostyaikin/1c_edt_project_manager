@@ -81,8 +81,23 @@ function Test-Platform {
     }
 
     $installations = foreach ($path in $candidatePaths) {
-        $versionText = (& "$path" /Version) 2>$null | Out-String
-        $version = Get-VersionFromText $versionText
+        $version = $null
+        $fileVersion = $null
+
+        try {
+            $file = Get-Item $path -ErrorAction Stop
+            $fileVersion = $file.VersionInfo.ProductVersion
+            if (-not $fileVersion) {
+                $fileVersion = $file.VersionInfo.FileVersion
+            }
+        }
+        catch {
+            $fileVersion = $null
+        }
+
+        if ($fileVersion) {
+            $version = Get-VersionFromText $fileVersion
+        }
 
         if (-not $version) {
             $folderMatch = [regex]::Match($path, "\\(\d+\.\d+\.\d+\.\d+)\\bin\\1cv8\.exe$")
