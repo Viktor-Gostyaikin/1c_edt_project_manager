@@ -126,12 +126,16 @@ function Test-Platform {
         Write-CheckResult "WARN" "1C:Enterprise Platform" "нужна версия $RequiredPlatformVersion, найдено: $versions"
     }
 
-    $serverService = Get-Service | Where-Object { $_.Name -like "1C:Enterprise 8.3 Server Agent*" -or $_.Name -like "1C:Enterprise 8.5 Server Agent*" } | Select-Object -First 1
-    if ($serverService) {
-        Write-CheckResult "OK" "1C Server component" "найдена служба '$($serverService.Name)' со статусом $($serverService.Status)"
+    $serverBinPath = $null
+    if ($matching) {
+        $serverBinPath = Split-Path $matching.Path -Parent
+    }
+
+    if ($serverBinPath -and (Test-Path (Join-Path $serverBinPath "ragent.exe")) -and (Test-Path (Join-Path $serverBinPath "rmngr.exe")) -and (Test-Path (Join-Path $serverBinPath "rphost.exe"))) {
+        Write-CheckResult "OK" "1C Server component" "найдены ragent.exe, rmngr.exe, rphost.exe в $serverBinPath"
     }
     else {
-        Write-CheckResult "WARN" "1C Server component" "служба сервера 1С не найдена. Проверьте, что при установке выбран компонент Сервер 1С:Предприятия."
+        Write-CheckResult "WARN" "1C Server component" "не найдены ragent.exe, rmngr.exe, rphost.exe в каталоге bin платформы $RequiredPlatformVersion. Убедитесь, что при установке выбран компонент Сервер 1С:Предприятия."
     }
 }
 
