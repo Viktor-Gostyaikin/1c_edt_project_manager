@@ -101,6 +101,16 @@ tools\init_workspace\windows\install-edt.cmd -DownloadOnly
 * Git LFS;
 * Java/JDK 17 или выше.
 
+## Проверка SSH-подключения к GitLab
+
+Скрипт `check-ssh-gitlab.cmd` проверяет SSH-подключение к GitLab серверу, указанному в `local.vars.ps1` (переменная `GitLabHost`).
+
+Требуется настроенный SSH-ключ для пользователя `git` на сервере GitLab.
+
+```cmd
+tools\init_workspace\windows\check-ssh-gitlab.cmd
+```
+
 ## Сценарий использования
 
 1. Пользователь клонирует репозиторий или получает папку проекта.
