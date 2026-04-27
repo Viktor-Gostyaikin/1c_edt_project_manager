@@ -21,6 +21,25 @@ if (-not $GitLabHost) {
 
 Write-Host "Проверка SSH-подключения к GitLab: $GitLabHost" -ForegroundColor Cyan
 
+# Добавляем хост-ключ в known_hosts, если его нет
+$knownHostsPath = "$env:USERPROFILE\.ssh\known_hosts"
+if (-not (Test-Path $knownHostsPath)) {
+    New-Item -ItemType File -Path $knownHostsPath -Force | Out-Null
+}
+
+$existingKey = Get-Content $knownHostsPath | Where-Object { $_ -match "^$GitLabHost " }
+if (-not $existingKey) {
+    Write-Host "Добавляю хост-ключ для $GitLabHost в known_hosts..."
+    $keyScan = & ssh-keyscan -H $GitLabHost 2>$null
+    if ($keyScan) {
+        Add-Content -Path $knownHostsPath -Value $keyScan
+        Write-Host "Хост-ключ добавлен." -ForegroundColor Green
+    }
+    else {
+        Write-Host "[WARN] Не удалось получить хост-ключ для $GitLabHost. Проверьте подключение к сети." -ForegroundColor Yellow
+    }
+}
+
 try {
     $result = & ssh -T -o BatchMode=yes -o ConnectTimeout=10 git@$GitLabHost "echo 'SSH connection successful'" 2>&1
     if ($LASTEXITCODE -eq 0) {
