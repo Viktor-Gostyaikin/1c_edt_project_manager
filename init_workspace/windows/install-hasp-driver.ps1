@@ -55,7 +55,7 @@ function Find-HaspInstaller {
         return $DownloadedFile
     }
 
-    $patterns = @("setup.exe", "install.exe", "*.msi")
+    $patterns = @("*.exe", "*.msi")
     foreach ($pattern in $patterns) {
         $file = Get-ChildItem -Path $SearchDir -Filter $pattern -Recurse -File -ErrorAction SilentlyContinue |
             Select-Object -First 1
@@ -65,7 +65,13 @@ function Find-HaspInstaller {
         }
     }
 
-    throw "Не найден установщик драйвера HASP в каталоге: $SearchDir"
+    Write-Host "Доступные файлы в каталоге распаковки:" -ForegroundColor Yellow
+    $files = Get-ChildItem -Path $SearchDir -Recurse -File -ErrorAction SilentlyContinue
+    foreach ($file in $files) {
+        Write-Host "  $($file.FullName)" -ForegroundColor Yellow
+    }
+
+    throw "Не найден установщик драйвера HASP (*.exe или *.msi) в каталоге: $SearchDir"
 }
 
 function Install-HaspDriver {
