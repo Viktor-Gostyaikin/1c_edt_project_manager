@@ -2,3 +2,5 @@
 init_workspace/windows/check-quickstart-deps.exe
 *.log
 *.tmp
+
+init_workspace/windows/local.vars.ps1
