@@ -81,7 +81,7 @@ function Test-Platform {
     }
 
     $installations = foreach ($path in $candidatePaths) {
-        $versionText = (& $path /Version) 2>$null | Out-String
+        $versionText = (& "$path" /Version) 2>$null | Out-String
         $version = Get-VersionFromText $versionText
 
         if (-not $version) {
