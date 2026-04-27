@@ -281,6 +281,24 @@ function Assert-FileSha512 {
     Write-Host "Контрольная сумма SHA-512 совпадает." -ForegroundColor Green
 }
 
+function Test-FileSha512 {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$FilePath,
+
+        [string]$ExpectedSha512 = ""
+    )
+
+    try {
+        Assert-FileSha512 -FilePath $FilePath -ExpectedSha512 $ExpectedSha512
+        return $true
+    }
+    catch {
+        Write-Host "[WARN] $($_.Exception.Message)" -ForegroundColor Yellow
+        return $false
+    }
+}
+
 function Assert-ArchiveExtractorAvailable {
     param(
         [Parameter(Mandatory = $true)]
@@ -577,11 +595,20 @@ function Save-OneCDistribution {
     $destinationFile = Join-Path $DestinationDir $link.FileName
     Assert-ArchiveExtractorAvailable -FileName $link.FileName
 
+    $shouldDownload = $true
     if ((Test-Path $destinationFile) -and -not $Force) {
-        Write-Host "Файл уже скачан: $destinationFile"
-        Assert-FileSha512 -FilePath $destinationFile -ExpectedSha512 $link.Sha512
+        Write-Host "Найден ранее скачанный файл: $destinationFile"
+        if (Test-FileSha512 -FilePath $destinationFile -ExpectedSha512 $link.Sha512) {
+            Write-Host "Использую уже скачанный дистрибутив." -ForegroundColor Green
+            $shouldDownload = $false
+        }
+        else {
+            Write-Host "Ранее скачанный файл поврежден или не соответствует странице релиза, скачиваю заново." -ForegroundColor Yellow
+            Remove-Item $destinationFile -Force -ErrorAction SilentlyContinue
+        }
     }
-    else {
+
+    if ($shouldDownload) {
         Write-Host "Скачиваю: $($link.DownloadUri)"
         Write-Host "В файл: $destinationFile"
         Save-OneCFileWithProgress `
