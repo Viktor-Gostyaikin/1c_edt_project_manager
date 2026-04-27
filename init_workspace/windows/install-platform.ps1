@@ -8,7 +8,7 @@ param(
     [string]$ExtractDir = "",
     [string]$ReleasePageUrl = "",
     [string[]]$DistributionFilters = @("Технологическая платформа 1С:Предприятия \(64-bit\) для Windows$"),
-    [string[]]$InstallerArguments = @("/S", "USEHWLICENSES=1"),
+    [string[]]$InstallerArguments = @("/S", "USEHWLICENSES=1", "InstallComponents=DESIGNERALLCLIENTS=1 SERVER=1 LANGUAGES=RU,EN"),
     [switch]$DownloadOnly,
     [switch]$ForceDownload,
     [switch]$ForceExtract,
