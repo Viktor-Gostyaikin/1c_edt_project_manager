@@ -384,6 +384,67 @@ function Format-FileSize {
     return "{0:N0} Б" -f $Bytes
 }
 
+function Format-Duration {
+    param(
+        [Parameter(Mandatory = $true)]
+        [double]$Seconds
+    )
+
+    if ($Seconds -lt 0 -or [double]::IsNaN($Seconds) -or [double]::IsInfinity($Seconds)) {
+        return "--:--"
+    }
+
+    $timeSpan = [TimeSpan]::FromSeconds([Math]::Round($Seconds))
+    if ($timeSpan.TotalHours -ge 1) {
+        return "{0:00}:{1:00}:{2:00}" -f [Math]::Floor($timeSpan.TotalHours), $timeSpan.Minutes, $timeSpan.Seconds
+    }
+
+    return "{0:00}:{1:00}" -f $timeSpan.Minutes, $timeSpan.Seconds
+}
+
+function Write-DownloadProgressLine {
+    param(
+        [Parameter(Mandatory = $true)]
+        [double]$DownloadedBytes,
+
+        [double]$TotalBytes = -1,
+
+        [double]$SpeedBytesPerSecond = 0,
+
+        [string]$FileName = ""
+    )
+
+    $barWidth = 28
+    $percentText = " --.-%"
+    $bar = ("#" * 8).PadRight($barWidth, ".")
+    $etaText = "--:--"
+
+    if ($TotalBytes -gt 0) {
+        $percent = [Math]::Min(100, [Math]::Max(0, ($DownloadedBytes / $TotalBytes) * 100))
+        $filledWidth = [Math]::Min($barWidth, [Math]::Floor(($percent / 100) * $barWidth))
+        $bar = ("#" * $filledWidth).PadRight($barWidth, ".")
+        $percentText = "{0,5:N1}%" -f $percent
+
+        if ($SpeedBytesPerSecond -gt 0) {
+            $etaText = Format-Duration (($TotalBytes - $DownloadedBytes) / $SpeedBytesPerSecond)
+        }
+    }
+
+    $downloaded = Format-FileSize $DownloadedBytes
+    $total = "неизвестно"
+    if ($TotalBytes -gt 0) {
+        $total = Format-FileSize $TotalBytes
+    }
+
+    $speed = Format-FileSize $SpeedBytesPerSecond
+    $message = "`r[$bar] $percentText  $downloaded / $total  $speed/с  осталось $etaText"
+    if (-not [string]::IsNullOrWhiteSpace($FileName)) {
+        $message = "$message  $FileName"
+    }
+
+    Write-Host $message -NoNewline
+}
+
 function Save-OneCFileWithProgress {
     param(
         [Parameter(Mandatory = $true)]
@@ -403,6 +464,7 @@ function Save-OneCFileWithProgress {
     $buffer = New-Object byte[] (1024 * 1024)
     $attempt = 1
     $activity = "Скачивание дистрибутива"
+    $fileName = [System.IO.Path]::GetFileName($DestinationFile)
 
     while ($attempt -le $MaxAttempts) {
         $response = $null
@@ -484,6 +546,12 @@ function Save-OneCFileWithProgress {
                         Write-Progress -Activity $activity -Status $status
                     }
 
+                    Write-DownloadProgressLine `
+                        -DownloadedBytes $downloadedBytes `
+                        -TotalBytes $totalBytes `
+                        -SpeedBytesPerSecond $speed `
+                        -FileName $fileName
+
                     $lastProgressAt = $now
                 }
             }
@@ -501,6 +569,7 @@ function Save-OneCFileWithProgress {
 
             Move-Item -Path $partialFile -Destination $DestinationFile -Force
             Write-Progress -Activity $activity -Completed
+            Write-Host ""
             Write-Host "Скачивание завершено: $DestinationFile" -ForegroundColor Green
             return
         }
