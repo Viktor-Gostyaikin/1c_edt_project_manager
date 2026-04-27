@@ -27,7 +27,7 @@ function Get-OneCCredential {
         [object]$Password = $null
     )
 
-    if (-not $User) {
+    if ([string]::IsNullOrWhiteSpace($User)) {
         $User = $env:ONEC_USERNAME
     }
 
@@ -35,17 +35,26 @@ function Get-OneCCredential {
         $Password = $env:ONEC_PASSWORD
     }
 
-    if (-not $User) {
+    if ([string]::IsNullOrWhiteSpace($User)) {
         $User = Read-Host "Логин releases.1c.ru"
+    }
+
+    if ([string]::IsNullOrWhiteSpace($User)) {
+        throw "Логин releases.1c.ru не указан."
     }
 
     if (-not $Password) {
         $Password = Read-Host "Пароль releases.1c.ru" -AsSecureString
     }
 
+    $plainPassword = ConvertTo-PlainText $Password
+    if ([string]::IsNullOrWhiteSpace($plainPassword)) {
+        throw "Пароль releases.1c.ru не указан."
+    }
+
     [pscustomobject]@{
         User = $User
-        Password = ConvertTo-PlainText $Password
+        Password = $plainPassword
     }
 }
 
@@ -196,6 +205,174 @@ function Get-FileNameFromOneCDownloadUri {
     return [System.IO.Path]::GetFileName(([uri]$Uri).AbsolutePath)
 }
 
+function Format-FileSize {
+    param(
+        [Parameter(Mandatory = $true)]
+        [double]$Bytes
+    )
+
+    if ($Bytes -ge 1GB) {
+        return "{0:N2} ГБ" -f ($Bytes / 1GB)
+    }
+
+    if ($Bytes -ge 1MB) {
+        return "{0:N2} МБ" -f ($Bytes / 1MB)
+    }
+
+    if ($Bytes -ge 1KB) {
+        return "{0:N2} КБ" -f ($Bytes / 1KB)
+    }
+
+    return "{0:N0} Б" -f $Bytes
+}
+
+function Save-OneCFileWithProgress {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Uri,
+
+        [Parameter(Mandatory = $true)]
+        [Microsoft.PowerShell.Commands.WebRequestSession]$Session,
+
+        [Parameter(Mandatory = $true)]
+        [string]$DestinationFile,
+
+        [int]$MaxAttempts = 3,
+        [int]$RetryDelaySeconds = 10
+    )
+
+    $partialFile = "$DestinationFile.part"
+    $buffer = New-Object byte[] (1024 * 1024)
+    $attempt = 1
+    $activity = "Скачивание дистрибутива"
+
+    while ($attempt -le $MaxAttempts) {
+        $response = $null
+        $stream = $null
+        $fileStream = $null
+
+        try {
+            $existingBytes = 0
+            if (Test-Path $partialFile) {
+                $existingBytes = (Get-Item $partialFile).Length
+            }
+
+            if ($existingBytes -gt 0) {
+                Write-Host "Продолжаю скачивание с позиции $(Format-FileSize $existingBytes). Попытка $attempt из $MaxAttempts."
+            }
+            else {
+                Write-Host "Начинаю скачивание. Попытка $attempt из $MaxAttempts."
+            }
+
+            $request = [System.Net.HttpWebRequest]::Create($Uri)
+            $request.Method = "GET"
+            $request.CookieContainer = $Session.Cookies
+            $request.UserAgent = $Session.UserAgent
+            $request.AllowAutoRedirect = $true
+            $request.Timeout = 30000
+            $request.ReadWriteTimeout = 30000
+
+            if ($existingBytes -gt 0) {
+                $request.AddRange($existingBytes)
+            }
+
+            $response = $request.GetResponse()
+
+            if ($existingBytes -gt 0 -and $response.StatusCode -ne [System.Net.HttpStatusCode]::PartialContent) {
+                Write-Host "Сервер не поддержал продолжение скачивания, начинаю файл заново." -ForegroundColor Yellow
+                Remove-Item $partialFile -Force -ErrorAction SilentlyContinue
+                $existingBytes = 0
+            }
+
+            $totalBytes = -1
+            if ($response.ContentLength -gt 0) {
+                $totalBytes = $existingBytes + $response.ContentLength
+            }
+
+            $fileMode = [System.IO.FileMode]::Append
+            if ($existingBytes -eq 0) {
+                $fileMode = [System.IO.FileMode]::Create
+            }
+
+            $stream = $response.GetResponseStream()
+            $fileStream = New-Object System.IO.FileStream($partialFile, $fileMode, [System.IO.FileAccess]::Write, [System.IO.FileShare]::None)
+
+            $downloadedBytes = $existingBytes
+            $startedAt = Get-Date
+            $lastProgressAt = Get-Date
+
+            while ($true) {
+                $read = $stream.Read($buffer, 0, $buffer.Length)
+                if ($read -le 0) {
+                    break
+                }
+
+                $fileStream.Write($buffer, 0, $read)
+                $downloadedBytes += $read
+
+                $now = Get-Date
+                if (($now - $lastProgressAt).TotalMilliseconds -ge 700) {
+                    $elapsedSeconds = [Math]::Max(1, ($now - $startedAt).TotalSeconds)
+                    $speed = ($downloadedBytes - $existingBytes) / $elapsedSeconds
+                    $status = "$(Format-FileSize $downloadedBytes)"
+
+                    if ($totalBytes -gt 0) {
+                        $percent = [Math]::Min(100, [Math]::Round(($downloadedBytes / $totalBytes) * 100, 1))
+                        $status = "$status из $(Format-FileSize $totalBytes), $(Format-FileSize $speed)/с"
+                        Write-Progress -Activity $activity -Status $status -PercentComplete $percent
+                    }
+                    else {
+                        $status = "$status, $(Format-FileSize $speed)/с"
+                        Write-Progress -Activity $activity -Status $status
+                    }
+
+                    $lastProgressAt = $now
+                }
+            }
+
+            $fileStream.Close()
+            $stream.Close()
+            $response.Close()
+
+            if ($totalBytes -gt 0) {
+                $actualBytes = (Get-Item $partialFile).Length
+                if ($actualBytes -lt $totalBytes) {
+                    throw "Скачивание завершилось не полностью: получено $(Format-FileSize $actualBytes) из $(Format-FileSize $totalBytes)."
+                }
+            }
+
+            Move-Item -Path $partialFile -Destination $DestinationFile -Force
+            Write-Progress -Activity $activity -Completed
+            Write-Host "Скачивание завершено: $DestinationFile" -ForegroundColor Green
+            return
+        }
+        catch {
+            if ($fileStream) {
+                $fileStream.Close()
+            }
+
+            if ($stream) {
+                $stream.Close()
+            }
+
+            if ($response) {
+                $response.Close()
+            }
+
+            Write-Progress -Activity $activity -Completed
+
+            if ($attempt -ge $MaxAttempts) {
+                throw "Не удалось скачать файл после $MaxAttempts попыток. Проверьте подключение к сети и повторите запуск. Частично скачанный файл сохранен как: $partialFile. Последняя ошибка: $($_.Exception.Message)"
+            }
+
+            Write-Host "[WARN] Скачивание прервано: $($_.Exception.Message)" -ForegroundColor Yellow
+            Write-Host "Повтор через $RetryDelaySeconds сек. Частично скачанный файл сохранен: $partialFile" -ForegroundColor Yellow
+            Start-Sleep -Seconds $RetryDelaySeconds
+            $attempt++
+        }
+    }
+}
+
 function Get-OneCDistributionLink {
     param(
         [Parameter(Mandatory = $true)]
@@ -300,12 +477,10 @@ function Save-OneCDistribution {
     else {
         Write-Host "Скачиваю: $($link.DownloadUri)"
         Write-Host "В файл: $destinationFile"
-        Invoke-OneCRequest `
+        Save-OneCFileWithProgress `
             -Uri $link.DownloadUri `
             -Session $session `
-            -User $User `
-            -Password $Password `
-            -OutFile $destinationFile | Out-Null
+            -DestinationFile $destinationFile
     }
 
     return [pscustomobject]@{
