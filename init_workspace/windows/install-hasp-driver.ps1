@@ -118,7 +118,7 @@ if ($DownloadOnly) {
 $installerRoot = Expand-OneCArchive `
     -ArchivePath $distribution.File `
     -DestinationDir $ExtractDir `
-    -Force:$ForceExtract
+    -Force:$true
 
 $installerPath = Find-HaspInstaller -SearchDir $installerRoot -DownloadedFile $distribution.File
 Install-HaspDriver -InstallerPath $installerPath -Arguments $InstallerArguments
