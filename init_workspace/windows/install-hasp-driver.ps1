@@ -1,8 +1,5 @@
 #Requires -Version 5.1
 
-# Установка кодировки UTF-8 для правильного отображения русского текста
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-
 param(
     [string]$Version = "7.63",
     [string]$OneCUser = "",
@@ -16,6 +13,9 @@ param(
     [switch]$ForceDownload,
     [switch]$ForceExtract
 )
+
+# Установка кодировки UTF-8 для правильного отображения русского текста
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version 2.0
