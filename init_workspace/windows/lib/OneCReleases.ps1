@@ -27,7 +27,7 @@ function Get-OneCCredential {
         [object]$Password = $null
     )
 
-    if ([string]::IsNullOrWhiteSpace($User)) {
+    if (-not $User) {
         $User = $env:ONEC_USERNAME
     }
 
@@ -35,26 +35,17 @@ function Get-OneCCredential {
         $Password = $env:ONEC_PASSWORD
     }
 
-    if ([string]::IsNullOrWhiteSpace($User)) {
+    if (-not $User) {
         $User = Read-Host "Логин releases.1c.ru"
-    }
-
-    if ([string]::IsNullOrWhiteSpace($User)) {
-        throw "Логин releases.1c.ru не указан."
     }
 
     if (-not $Password) {
         $Password = Read-Host "Пароль releases.1c.ru" -AsSecureString
     }
 
-    $plainPassword = ConvertTo-PlainText $Password
-    if ([string]::IsNullOrWhiteSpace($plainPassword)) {
-        throw "Пароль releases.1c.ru не указан."
-    }
-
     [pscustomobject]@{
         User = $User
-        Password = $plainPassword
+        Password = ConvertTo-PlainText $Password
     }
 }
 

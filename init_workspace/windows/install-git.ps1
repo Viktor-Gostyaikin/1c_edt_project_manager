@@ -22,6 +22,14 @@ Set-StrictMode -Version 2.0
 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $RepoRoot = (Resolve-Path (Join-Path $ScriptDir "..\..\..")).Path
+. (Join-Path $ScriptDir "lib\InitWorkspaceVars.ps1")
+
+$variables = Get-InitWorkspaceVariables -ScriptDir $ScriptDir
+$UserName = Get-InitWorkspaceValue -Variables $variables -Name "GitUserName" -CurrentValue $UserName -PreferCurrent:$PSBoundParameters.ContainsKey("UserName")
+$UserEmail = Get-InitWorkspaceValue -Variables $variables -Name "GitUserEmail" -CurrentValue $UserEmail -PreferCurrent:$PSBoundParameters.ContainsKey("UserEmail")
+$DownloadDir = Get-InitWorkspaceValue -Variables $variables -Name "GitDownloadDir" -CurrentValue $DownloadDir -PreferCurrent:$PSBoundParameters.ContainsKey("DownloadDir")
+$InstallerUrl = Get-InitWorkspaceValue -Variables $variables -Name "GitInstallerUrl" -CurrentValue $InstallerUrl -PreferCurrent:$PSBoundParameters.ContainsKey("InstallerUrl")
+$GitLabHost = Get-InitWorkspaceValue -Variables $variables -Name "GitLabHost" -CurrentValue $GitLabHost -PreferCurrent:$PSBoundParameters.ContainsKey("GitLabHost")
 
 if (-not $DownloadDir) {
     $DownloadDir = Join-Path $RepoRoot "build\downloads\git"

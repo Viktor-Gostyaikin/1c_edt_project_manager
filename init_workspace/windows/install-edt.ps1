@@ -24,7 +24,16 @@ Set-StrictMode -Version 2.0
 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $RepoRoot = (Resolve-Path (Join-Path $ScriptDir "..\..\..")).Path
+. (Join-Path $ScriptDir "lib\InitWorkspaceVars.ps1")
 . (Join-Path $ScriptDir "lib\OneCReleases.ps1")
+
+$variables = Get-InitWorkspaceVariables -ScriptDir $ScriptDir
+$Version = Get-InitWorkspaceValue -Variables $variables -Name "EdtVersion" -CurrentValue $Version -PreferCurrent:$PSBoundParameters.ContainsKey("Version")
+$OneCUser = Get-InitWorkspaceValue -Variables $variables -Name "OneCUser" -CurrentValue $OneCUser -PreferCurrent:$PSBoundParameters.ContainsKey("OneCUser")
+$OneCPassword = Get-InitWorkspaceValue -Variables $variables -Name "OneCPassword" -CurrentValue $OneCPassword -PreferCurrent:$PSBoundParameters.ContainsKey("OneCPassword")
+$DownloadDir = Get-InitWorkspaceValue -Variables $variables -Name "EdtDownloadDir" -CurrentValue $DownloadDir -PreferCurrent:$PSBoundParameters.ContainsKey("DownloadDir")
+$ExtractDir = Get-InitWorkspaceValue -Variables $variables -Name "EdtExtractDir" -CurrentValue $ExtractDir -PreferCurrent:$PSBoundParameters.ContainsKey("ExtractDir")
+$ReleasePageUrl = Get-InitWorkspaceValue -Variables $variables -Name "EdtReleasePageUrl" -CurrentValue $ReleasePageUrl -PreferCurrent:$PSBoundParameters.ContainsKey("ReleasePageUrl")
 
 if (-not $DownloadDir) {
     $DownloadDir = Join-Path $RepoRoot "build\downloads\edt\$Version"
