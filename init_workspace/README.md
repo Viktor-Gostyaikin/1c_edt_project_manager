@@ -6,7 +6,7 @@
 
 | Задача | Скрипт |
 | --- | --- |
-| Открыть мастер подготовки с кнопками | `windows\commands\start-workspace-setup.cmd` |
+| Открыть мастер подготовки с кнопками | `windows\start-workspace-setup.cmd` |
 | Проверить платформу 1С, серверный компонент, EDT, Git, Git LFS и Java | `windows\commands\check-quickstart-deps.cmd` |
 | Установить Git for Windows и настроить Git | `windows\commands\install-git.cmd` |
 | Установить 7-Zip | `windows\commands\install-archiver.cmd` |
@@ -50,7 +50,7 @@ $InitWorkspace = @{
 4. Запустите мастер подготовки:
 
 ```cmd
-commands\start-workspace-setup.cmd
+start-workspace-setup.cmd
 ```
 
 5. В мастере нажимайте кнопки сверху вниз. Если проверка показывает `FAIL`, установите недостающие компоненты и повторите проверку.
@@ -64,7 +64,7 @@ commands\start-workspace-setup.cmd
 5. `commands\check-ssh-gitlab.cmd`
 6. `commands\check-quickstart-deps.cmd`
 
-> Скрипты установки платформы, EDT и HASP должны запускаться от имени администратора. Проверочные скрипты обычно запускаются без повышения прав.
+> Мастер `start-workspace-setup.cmd` требует права администратора и при обычном запуске сам покажет UAC-запрос.
 
 ## Локальные настройки
 
