@@ -146,6 +146,7 @@ function New-Button {
         [Parameter(Mandatory = $true)]
         [scriptblock]$OnClick,
 
+        [System.Windows.Forms.Control]$Parent = $form,
         [int]$Width = 235,
         [int]$Height = 42
     )
@@ -155,7 +156,9 @@ function New-Button {
     $button.Location = New-Object System.Drawing.Point($X, $Y)
     $button.Size = New-Object System.Drawing.Size($Width, $Height)
     $button.Font = New-Object System.Drawing.Font("Segoe UI", 9)
+    $button.FlatStyle = [System.Windows.Forms.FlatStyle]::System
     $button.Add_Click($OnClick)
+    $Parent.Controls.Add($button)
     return $button
 }
 
@@ -177,41 +180,127 @@ function New-StatusLabel {
     return $label
 }
 
+function New-GroupBox {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Text,
+
+        [Parameter(Mandatory = $true)]
+        [int]$X,
+
+        [Parameter(Mandatory = $true)]
+        [int]$Y,
+
+        [Parameter(Mandatory = $true)]
+        [int]$Width,
+
+        [Parameter(Mandatory = $true)]
+        [int]$Height
+    )
+
+    $group = New-Object System.Windows.Forms.GroupBox
+    $group.Text = $Text
+    $group.Location = New-Object System.Drawing.Point($X, $Y)
+    $group.Size = New-Object System.Drawing.Size($Width, $Height)
+    $group.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Bold)
+    $group.BackColor = [System.Drawing.Color]::White
+    return $group
+}
+
+function New-SectionButton {
+    param(
+        [Parameter(Mandatory = $true)]
+        [System.Windows.Forms.Control]$Parent,
+
+        [Parameter(Mandatory = $true)]
+        [string]$Text,
+
+        [Parameter(Mandatory = $true)]
+        [int]$Y,
+
+        [Parameter(Mandatory = $true)]
+        [scriptblock]$OnClick
+    )
+
+    return New-Button -Text $Text -X 16 -Y $Y -Width 304 -Height 38 -Parent $Parent -OnClick $OnClick
+}
+
 $form = New-Object System.Windows.Forms.Form
 $form.Text = "Подготовка рабочего места 1С"
 $form.StartPosition = "CenterScreen"
-$form.Size = New-Object System.Drawing.Size(560, 730)
-$form.MinimumSize = New-Object System.Drawing.Size(560, 730)
+$form.Size = New-Object System.Drawing.Size(760, 800)
+$form.MinimumSize = New-Object System.Drawing.Size(760, 800)
 $form.Font = New-Object System.Drawing.Font("Segoe UI", 9)
 $form.MaximizeBox = $false
+$form.BackColor = [System.Drawing.Color]::FromArgb(245, 247, 250)
+
+$header = New-Object System.Windows.Forms.Panel
+$header.Location = New-Object System.Drawing.Point(0, 0)
+$header.Size = New-Object System.Drawing.Size(744, 88)
+$header.BackColor = [System.Drawing.Color]::White
+$form.Controls.Add($header)
 
 $title = New-Object System.Windows.Forms.Label
 $title.Text = "Подготовка рабочего места разработчика 1С"
 $title.Location = New-Object System.Drawing.Point(24, 20)
-$title.Size = New-Object System.Drawing.Size(500, 30)
-$title.Font = New-Object System.Drawing.Font("Segoe UI", 13, [System.Drawing.FontStyle]::Bold)
-$form.Controls.Add($title)
+$title.Size = New-Object System.Drawing.Size(520, 28)
+$title.Font = New-Object System.Drawing.Font("Segoe UI", 14, [System.Drawing.FontStyle]::Bold)
+$header.Controls.Add($title)
 
 $subtitle = New-Object System.Windows.Forms.Label
-$subtitle.Text = "Запускайте команды сверху вниз. Окно консоли покажет подробный результат."
+$subtitle.Text = "Выполняйте шаги слева направо: подготовка, установка, настройка EDT и базы."
 $subtitle.Location = New-Object System.Drawing.Point(24, 54)
-$subtitle.Size = New-Object System.Drawing.Size(500, 24)
+$subtitle.Size = New-Object System.Drawing.Size(560, 22)
 $subtitle.Font = New-Object System.Drawing.Font("Segoe UI", 9)
-$form.Controls.Add($subtitle)
+$subtitle.ForeColor = [System.Drawing.Color]::FromArgb(82, 92, 105)
+$header.Controls.Add($subtitle)
 
-$status = New-StatusLabel -Text "Последнее действие: не запускалось" -Y 640
-$form.Controls.Add($status)
-
-$adminStatus = New-StatusLabel -Text "" -Y 662
+$adminStatus = New-Object System.Windows.Forms.Label
+$adminStatus.Location = New-Object System.Drawing.Point(590, 24)
+$adminStatus.Size = New-Object System.Drawing.Size(130, 30)
+$adminStatus.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
+$adminStatus.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Bold)
 if (Test-Administrator) {
-    $adminStatus.Text = "Права администратора: да"
-    $adminStatus.ForeColor = [System.Drawing.Color]::DarkGreen
+    $adminStatus.Text = "Администратор"
+    $adminStatus.BackColor = [System.Drawing.Color]::FromArgb(226, 246, 229)
+    $adminStatus.ForeColor = [System.Drawing.Color]::FromArgb(31, 122, 48)
 }
 else {
-    $adminStatus.Text = "Права администратора: нет. Установки будут запрошены с повышением прав."
-    $adminStatus.ForeColor = [System.Drawing.Color]::DarkOrange
+    $adminStatus.Text = "Без повышения"
+    $adminStatus.BackColor = [System.Drawing.Color]::FromArgb(255, 242, 214)
+    $adminStatus.ForeColor = [System.Drawing.Color]::FromArgb(156, 103, 0)
 }
-$form.Controls.Add($adminStatus)
+$header.Controls.Add($adminStatus)
+
+$prepGroup = New-GroupBox -Text "1. Подготовка проекта" -X 24 -Y 108 -Width 344 -Height 244
+$installGroup = New-GroupBox -Text "2. Установка компонентов" -X 392 -Y 108 -Width 344 -Height 244
+$edtGroup = New-GroupBox -Text "3. EDT и информационная база" -X 24 -Y 372 -Width 344 -Height 244
+$toolsGroup = New-GroupBox -Text "4. Проверка и справка" -X 392 -Y 372 -Width 344 -Height 244
+$form.Controls.Add($prepGroup)
+$form.Controls.Add($installGroup)
+$form.Controls.Add($edtGroup)
+$form.Controls.Add($toolsGroup)
+
+$statusPanel = New-Object System.Windows.Forms.Panel
+$statusPanel.Location = New-Object System.Drawing.Point(24, 636)
+$statusPanel.Size = New-Object System.Drawing.Size(712, 58)
+$statusPanel.BackColor = [System.Drawing.Color]::White
+$form.Controls.Add($statusPanel)
+
+$statusTitle = New-Object System.Windows.Forms.Label
+$statusTitle.Text = "Статус"
+$statusTitle.Location = New-Object System.Drawing.Point(16, 10)
+$statusTitle.Size = New-Object System.Drawing.Size(80, 18)
+$statusTitle.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Bold)
+$statusPanel.Controls.Add($statusTitle)
+
+$status = New-Object System.Windows.Forms.Label
+$status.Text = "Последнее действие: не запускалось"
+$status.Location = New-Object System.Drawing.Point(16, 30)
+$status.Size = New-Object System.Drawing.Size(680, 20)
+$status.Font = New-Object System.Drawing.Font("Segoe UI", 9)
+$status.ForeColor = [System.Drawing.Color]::FromArgb(82, 92, 105)
+$statusPanel.Controls.Add($status)
 
 function Run-And-SetStatus {
     param(
@@ -244,76 +333,76 @@ function Run-And-SetStatus {
     }
 }
 
-$form.Controls.Add((New-Button -Text "1. Проверить окружение" -X 24 -Y 96 -OnClick {
+New-SectionButton -Parent $prepGroup -Text "1. Проверить окружение" -Y 30 -OnClick {
     Run-And-SetStatus -CommandName "check-quickstart-deps.cmd" -Caption "проверка окружения"
-}))
+} | Out-Null
 
-$form.Controls.Add((New-Button -Text "2. Настроить local.vars.ps1" -X 286 -Y 96 -OnClick {
+New-SectionButton -Parent $prepGroup -Text "2. Настроить local.vars.ps1" -Y 76 -OnClick {
     Ensure-LocalVars
     $status.Text = "Последнее действие: открыт local.vars.ps1"
-}))
+} | Out-Null
 
-$form.Controls.Add((New-Button -Text "3. Установить Git" -X 24 -Y 152 -OnClick {
+New-SectionButton -Parent $prepGroup -Text "3. Установить Git" -Y 122 -OnClick {
     Run-And-SetStatus -CommandName "install-git.cmd" -Caption "установка Git" -RequiresAdmin
-}))
+} | Out-Null
 
-$form.Controls.Add((New-Button -Text "4. Проверить SSH GitLab" -X 286 -Y 152 -OnClick {
+New-SectionButton -Parent $prepGroup -Text "4. Проверить SSH GitLab" -Y 168 -OnClick {
     Run-And-SetStatus -CommandName "check-ssh-gitlab.cmd" -Caption "проверка SSH GitLab"
-}))
+} | Out-Null
 
-$form.Controls.Add((New-Button -Text "5. Развернуть репозиторий" -X 24 -Y 208 -OnClick {
+New-SectionButton -Parent $installGroup -Text "5. Развернуть репозиторий" -Y 30 -OnClick {
     Run-And-SetStatus -CommandName "clone-project.cmd" -Caption "развертывание репозитория проекта"
-}))
+} | Out-Null
 
-$form.Controls.Add((New-Button -Text "6. Установить 7-Zip" -X 286 -Y 208 -OnClick {
+New-SectionButton -Parent $installGroup -Text "6. Установить 7-Zip" -Y 76 -OnClick {
     Run-And-SetStatus -CommandName "install-archiver.cmd" -Caption "установка 7-Zip" -RequiresAdmin
-}))
+} | Out-Null
 
-$form.Controls.Add((New-Button -Text "7. Установить платформу 1С" -X 24 -Y 264 -OnClick {
+New-SectionButton -Parent $installGroup -Text "7. Установить платформу 1С" -Y 122 -OnClick {
     Run-And-SetStatus -CommandName "install-platform.cmd" -Caption "установка платформы 1С" -RequiresAdmin
-}))
+} | Out-Null
 
-$form.Controls.Add((New-Button -Text "8. Установить EDT" -X 286 -Y 264 -OnClick {
+New-SectionButton -Parent $installGroup -Text "8. Установить EDT" -Y 168 -OnClick {
     Run-And-SetStatus -CommandName "install-edt.cmd" -Caption "установка EDT" -RequiresAdmin
-}))
+} | Out-Null
 
-$form.Controls.Add((New-Button -Text "9. Открыть 1cedt.ini" -X 24 -Y 320 -OnClick {
+New-SectionButton -Parent $edtGroup -Text "9. Открыть 1cedt.ini" -Y 30 -OnClick {
     Run-And-SetStatus -CommandName "open-edt-config.cmd" -Caption "открытие 1cedt.ini"
-}))
+} | Out-Null
 
-$form.Controls.Add((New-Button -Text "10. Инициализировать EDT" -X 286 -Y 320 -OnClick {
+New-SectionButton -Parent $edtGroup -Text "10. Инициализировать EDT" -Y 76 -OnClick {
     Run-And-SetStatus -CommandName "init-edt-workspace.cmd" -Caption "инициализация рабочей области EDT"
-}))
+} | Out-Null
 
-$form.Controls.Add((New-Button -Text "11. Запустить EDT" -X 24 -Y 386 -OnClick {
+New-SectionButton -Parent $edtGroup -Text "11. Запустить EDT" -Y 122 -OnClick {
     Run-And-SetStatus -CommandName "start-edt.cmd" -Caption "запуск приложения EDT"
-}))
+} | Out-Null
 
-$form.Controls.Add((New-Button -Text "12. Создать ИБ" -X 286 -Y 386 -OnClick {
+New-SectionButton -Parent $edtGroup -Text "12. Создать ИБ" -Y 168 -OnClick {
     Run-And-SetStatus -CommandName "create-infobase.cmd" -Caption "создание информационной базы"
-}))
+} | Out-Null
 
-$form.Controls.Add((New-Button -Text "13. Установить HASP" -X 24 -Y 452 -OnClick {
+New-SectionButton -Parent $toolsGroup -Text "13. Установить HASP" -Y 30 -OnClick {
     Run-And-SetStatus -CommandName "install-hasp-driver.cmd" -Caption "установка HASP" -RequiresAdmin
-}))
+} | Out-Null
 
-$form.Controls.Add((New-Button -Text "Итоговая проверка" -X 286 -Y 452 -OnClick {
+New-SectionButton -Parent $toolsGroup -Text "Итоговая проверка" -Y 76 -OnClick {
     Run-And-SetStatus -CommandName "check-quickstart-deps.cmd" -Caption "итоговая проверка"
-}))
+} | Out-Null
 
-$form.Controls.Add((New-Button -Text "Открыть папку команд" -X 24 -Y 508 -OnClick {
+New-SectionButton -Parent $toolsGroup -Text "Открыть папку команд" -Y 122 -OnClick {
     Open-Folder -Path $CommandsDir
     $status.Text = "Последнее действие: открыта папка команд"
-}))
+} | Out-Null
 
-$form.Controls.Add((New-Button -Text "Открыть README" -X 286 -Y 508 -OnClick {
+New-SectionButton -Parent $toolsGroup -Text "Открыть README" -Y 168 -OnClick {
     $readmePath = Join-Path $WindowsDir "README.md"
     Start-Process -FilePath "notepad.exe" -ArgumentList "`"$readmePath`""
     $status.Text = "Последнее действие: открыт README"
-}))
+} | Out-Null
 
-$form.Controls.Add((New-Button -Text "Закрыть" -X 286 -Y 574 -OnClick {
+New-Button -Text "Закрыть" -X 616 -Y 704 -Width 120 -Height 32 -OnClick {
     $form.Close()
-}))
+} | Out-Null
 
 [System.Windows.Forms.Application]::Run($form)
