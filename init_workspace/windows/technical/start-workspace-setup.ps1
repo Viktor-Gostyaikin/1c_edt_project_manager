@@ -358,7 +358,7 @@ New-SectionButton -Parent $installGroup -Text "6. Установить 7-Zip" -Y
     Run-And-SetStatus -CommandName "install-archiver.cmd" -Caption "установка 7-Zip" -RequiresAdmin
 } | Out-Null
 
-New-SectionButton -Parent $installGroup -Text "7. Установить платформу 1С" -Y 122 -OnClick {
+New-SectionButton -Parent $installGroup -Text "7. Установить платформу 1С + HASP" -Y 122 -OnClick {
     Run-And-SetStatus -CommandName "install-platform.cmd" -Caption "установка платформы 1С" -RequiresAdmin
 } | Out-Null
 
@@ -382,20 +382,16 @@ New-SectionButton -Parent $edtGroup -Text "12. Создать ИБ" -Y 168 -OnCl
     Run-And-SetStatus -CommandName "create-infobase.cmd" -Caption "создание информационной базы"
 } | Out-Null
 
-New-SectionButton -Parent $toolsGroup -Text "13. Установить HASP" -Y 30 -OnClick {
-    Run-And-SetStatus -CommandName "install-hasp-driver.cmd" -Caption "установка HASP" -RequiresAdmin
-} | Out-Null
-
-New-SectionButton -Parent $toolsGroup -Text "Итоговая проверка" -Y 76 -OnClick {
+New-SectionButton -Parent $toolsGroup -Text "Итоговая проверка" -Y 30 -OnClick {
     Run-And-SetStatus -CommandName "check-quickstart-deps.cmd" -Caption "итоговая проверка"
 } | Out-Null
 
-New-SectionButton -Parent $toolsGroup -Text "Открыть папку команд" -Y 122 -OnClick {
+New-SectionButton -Parent $toolsGroup -Text "Открыть папку команд" -Y 76 -OnClick {
     Open-Folder -Path $CommandsDir
     $status.Text = "Последнее действие: открыта папка команд"
 } | Out-Null
 
-New-SectionButton -Parent $toolsGroup -Text "Открыть README" -Y 168 -OnClick {
+New-SectionButton -Parent $toolsGroup -Text "Открыть README" -Y 122 -OnClick {
     $readmePath = Join-Path $WindowsDir "README.md"
     Start-Process -FilePath "notepad.exe" -ArgumentList "`"$readmePath`""
     $status.Text = "Последнее действие: открыт README"

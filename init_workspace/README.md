@@ -10,9 +10,8 @@
 | Проверить платформу 1С, серверный компонент, EDT, Git, Git LFS и Java | `windows\commands\check-quickstart-deps.cmd` |
 | Установить Git for Windows и настроить Git | `windows\commands\install-git.cmd` |
 | Установить 7-Zip | `windows\commands\install-archiver.cmd` |
-| Скачать и установить платформу 1С | `windows\commands\install-platform.cmd` |
+| Скачать и установить платформу 1С и драйвер HASP | `windows\commands\install-platform.cmd` |
 | Скачать и установить 1C:EDT | `windows\commands\install-edt.cmd` |
-| Установить драйвер HASP | `windows\commands\install-hasp-driver.cmd` |
 | Проверить SSH-доступ к GitLab | `windows\commands\check-ssh-gitlab.cmd` |
 | Развернуть репозиторий проекта | `windows\commands\clone-project.cmd` |
 | Импортировать проект в рабочую область EDT | `windows\commands\init-edt-workspace.cmd` |

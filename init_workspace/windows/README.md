@@ -58,9 +58,8 @@ $InitWorkspace = @{
 | `start-workspace-setup.cmd` | Открывает мастер подготовки рабочего места с кнопками запуска |
 | `commands\install-git.cmd` | Устанавливает Git for Windows и настраивает глобальные параметры Git |
 | `commands\install-archiver.cmd` | Устанавливает 7-Zip для распаковки RAR-архивов |
-| `commands\install-platform.cmd` | Скачивает и устанавливает платформу 1С вместе с серверным компонентом |
+| `commands\install-platform.cmd` | Скачивает и устанавливает платформу 1С, серверный компонент и драйвер HASP |
 | `commands\install-edt.cmd` | Скачивает и устанавливает 1C:EDT |
-| `commands\install-hasp-driver.cmd` | Устанавливает драйвер HASP из поставки платформы |
 | `commands\check-quickstart-deps.cmd` | Проверяет базовое окружение: платформа, сервер, EDT, Git, Git LFS, Git CRLF и Java |
 | `commands\check-ssh-gitlab.cmd` | Проверяет SSH-подключение к GitLab и добавляет ключ хоста в `known_hosts` |
 | `commands\clone-project.cmd` | Развертывает репозиторий проекта: проверяет наличие локального клона и клонирует его при отсутствии |
@@ -87,14 +86,13 @@ start-workspace-setup.cmd
 4. Проверить SSH GitLab.
 5. Развернуть репозиторий проекта.
 6. Установить 7-Zip.
-7. Установить платформу 1С.
+7. Установить платформу 1С и драйвер HASP.
 8. Установить EDT.
 9. При необходимости открыть и настроить `1cedt.ini`.
 10. Инициализировать рабочую область EDT.
 11. Запустить EDT.
 12. Создать информационную базу 1С.
-13. Установить HASP.
-14. Запустить итоговую проверку.
+13. Запустить итоговую проверку.
 
 Те же действия можно запускать отдельными командами из `commands`.
 
@@ -108,7 +106,7 @@ start-workspace-setup.cmd
 
 ## Как работают установки
 
-- `commands\install-platform.cmd` скачивает RAR-архив платформы, распаковывает его и запускает `setup.exe /S USEHWLICENSES=0`.
+- `commands\install-platform.cmd` скачивает RAR-архив платформы, распаковывает его, запускает установщик платформы и затем устанавливает драйвер HASP из поставки платформы.
 - `commands\install-edt.cmd` работает через offline-дистрибутив и предпочитает `1ce-installer-cli.exe install`. Если CLI не найден, запускается доступный установщик `.exe`.
 - `commands\install-git.cmd` настраивает `core.autocrlf=true`, `core.safecrlf=true`, `core.quotePath=false`, `credential.helper=manager` и несколько удобных алиасов.
 
@@ -239,7 +237,7 @@ V8Path = "C:\Program Files\1cv8\8.5.1.1302\bin\1cv8.exe"
 
 - Если `Git line endings` в `commands\check-quickstart-deps.cmd` показывает `WARN`, запустите `commands\install-git.cmd` или проверьте `git config --global core.autocrlf true` и `git config --global core.safecrlf true`.
 - Если `Java` показывает `WARN`, это означает, что JDK не обнаружен или версия ниже требуемой.
-- Если `HASP Driver` не найден, установите драйвер через `commands\install-hasp-driver.cmd`.
+- Если `HASP Driver` не найден, повторите установку платформы через `commands\install-platform.cmd`.
 
 ## Дополнительно
 
