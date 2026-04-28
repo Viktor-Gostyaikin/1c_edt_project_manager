@@ -84,6 +84,34 @@ function Write-SshKeyInstructions {
     Write-Host "  ssh -T git@$HostName"
 }
 
+function Write-PermissionDeniedInstructions {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$HostName,
+
+        [string]$PublicKeyPath = ""
+    )
+
+    Write-Host ""
+    Write-Host "[HINT] GitLab отклонил SSH-ключ." -ForegroundColor Yellow
+    Write-Host "Проверьте, что публичный ключ добавлен в профиль GitLab:"
+    Write-Host "  https://$HostName/-/user_settings/ssh_keys"
+
+    Write-Host ""
+    Write-Host "[HINT] Подробная инструкция по настройке SSH для GitLab:"
+    Write-Host "  https://archives.docs.gitlab.com/17.7/ee/user/ssh/"
+
+    if ($PublicKeyPath) {
+        Write-Host ""
+        Write-Host "Публичный ключ можно вывести командой:"
+        Write-Host "  type ""$PublicKeyPath"""
+    }
+
+    Write-Host ""
+    Write-Host "После проверки ключа повторите команду:"
+    Write-Host "  ssh -T git@$HostName"
+}
+
 $sshKeyInfo = Get-SshKeyInfo
 if (-not $sshKeyInfo) {
     Write-SshKeyInstructions -HostName $GitLabHost
@@ -148,6 +176,11 @@ try {
     }
     else {
         Write-Host "[FAIL] SSH-подключение к $GitLabHost не удалось: $result" -ForegroundColor Red
+
+        if (($result | Out-String) -match "Permission denied") {
+            Write-PermissionDeniedInstructions -HostName $GitLabHost -PublicKeyPath $sshKeyInfo.PublicKeyPath
+        }
+
         exit 1
     }
 }

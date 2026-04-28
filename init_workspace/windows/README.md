@@ -137,7 +137,7 @@ type "%USERPROFILE%\.ssh\id_ed25519.pub"
 ### Распространенные ошибки
 
 - `Host key verification failed` — обычно означает, что ключ хоста ещё не в `known_hosts`
-- `Permission denied (publickey)` — SSH-ключ не настроен или не привязан в GitLab
+- `Permission denied (publickey)` — SSH-ключ не настроен или не привязан в GitLab; проверьте ключ в `https://gitlab.corp/-/user_settings/ssh_keys`
 - `Connection timed out` — блокировка сети или недоступность порта 22
 
 ### Ручная проверка
