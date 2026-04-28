@@ -74,7 +74,12 @@ function Resolve-ProjectPaths {
     }
 
     if ([string]::IsNullOrWhiteSpace($script:InfoBaseListName) -and -not [string]::IsNullOrWhiteSpace($script:ProjectRootDir)) {
-        $script:InfoBaseListName = "$(Split-Path -Path $script:ProjectRootDir -Leaf) dev"
+        $projectName = Split-Path -Path $script:ProjectRootDir -Leaf
+        if ([string]::IsNullOrWhiteSpace($projectName)) {
+            $projectName = "edt project"
+        }
+
+        $script:InfoBaseListName = $projectName
     }
 }
 
