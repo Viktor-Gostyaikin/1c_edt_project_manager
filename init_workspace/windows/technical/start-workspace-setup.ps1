@@ -126,6 +126,7 @@ function New-Button {
 function New-StatusLabel {
     param(
         [Parameter(Mandatory = $true)]
+        [AllowEmptyString()]
         [string]$Text,
 
         [Parameter(Mandatory = $true)]
