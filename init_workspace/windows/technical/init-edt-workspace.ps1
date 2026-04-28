@@ -67,7 +67,7 @@ function Resolve-ProjectPaths {
     }
 
     if ([string]::IsNullOrWhiteSpace($script:EdtWorkspaceDir)) {
-        $script:EdtWorkspaceDir = Join-Path $script:ProjectRootDir
+        $script:EdtWorkspaceDir = $script:ProjectRootDir
     }
 }
 
