@@ -18,7 +18,7 @@ $InitWorkspace = @{
     # Репозиторий проекта.
     ProjectRepoUrl = "git@gitlab.com:group/project.git"
     # Если ProjectRootDir пустой, используется ProjectCloneDir.
-    # Если EdtWorkspaceDir пустой, рабочая область EDT создается внутри проекта: <ProjectRootDir>\.metadata.
+    # Если EdtWorkspaceDir пустой, рабочая область EDT создается внутри проекта: <ProjectRootDir>.
     ProjectCloneDir = ""
     ProjectRootDir = ""
     EdtWorkspaceDir = ""
