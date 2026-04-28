@@ -14,7 +14,7 @@
 | Скачать и установить 1C:EDT | `windows\commands\install-edt.cmd` |
 | Установить драйвер HASP | `windows\commands\install-hasp-driver.cmd` |
 | Проверить SSH-доступ к GitLab | `windows\commands\check-ssh-gitlab.cmd` |
-| Проверить и склонировать репозиторий проекта | `windows\commands\clone-project.cmd` |
+| Развернуть репозиторий проекта | `windows\commands\clone-project.cmd` |
 | Импортировать проект в рабочую область EDT | `windows\commands\init-edt-workspace.cmd` |
 | Запустить 1C:EDT CLI в интерактивном режиме | `windows\commands\start-edt-cli.cmd` |
 | Создать файловую информационную базу 1С | `windows\commands\create-infobase.cmd` |

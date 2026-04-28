@@ -61,7 +61,7 @@ $InitWorkspace = @{
 | `commands\install-hasp-driver.cmd` | Устанавливает драйвер HASP из поставки платформы |
 | `commands\check-quickstart-deps.cmd` | Проверяет базовое окружение: платформа, сервер, EDT, Git, Git LFS, Git CRLF и Java |
 | `commands\check-ssh-gitlab.cmd` | Проверяет SSH-подключение к GitLab и добавляет ключ хоста в `known_hosts` |
-| `commands\clone-project.cmd` | Проверяет наличие репозитория проекта и клонирует его при отсутствии |
+| `commands\clone-project.cmd` | Развертывает репозиторий проекта: проверяет наличие локального клона и клонирует его при отсутствии |
 | `commands\init-edt-workspace.cmd` | Импортирует проект 1C:EDT в рабочую область через `1cedtcli` |
 | `commands\start-edt-cli.cmd` | Запускает 1C:EDT CLI в интерактивном режиме |
 | `commands\create-infobase.cmd` | Создает файловую информационную базу 1С в каталоге проекта |
@@ -82,7 +82,7 @@ start-workspace-setup.cmd
 2. Настроить `local.vars.ps1`.
 3. Установить Git.
 4. Проверить SSH GitLab.
-5. Подготовить проект и рабочую область EDT.
+5. Развернуть репозиторий проекта.
 6. Установить 7-Zip.
 7. Установить платформу 1С.
 8. Установить EDT.
@@ -146,7 +146,7 @@ type "%USERPROFILE%\.ssh\id_ed25519.pub"
 ssh -T git@gitlab.corp.itworks.group
 ```
 
-## Проверка и клонирование проекта
+## Развертывание репозитория проекта
 
 Скрипт `commands\clone-project.cmd` использует параметры из `local.vars.ps1`:
 
@@ -155,12 +155,9 @@ ssh -T git@gitlab.corp.itworks.group
 | `ProjectRepoUrl` | SSH или HTTPS URL репозитория проекта |
 | `ProjectCloneDir` | каталог, куда нужно клонировать репозиторий |
 | `ProjectRootDir` | корневой каталог проекта; если пустой, используется `ProjectCloneDir` |
-| `EdtWorkspaceDir` | каталог рабочей области EDT |
-| `InfoBasePath` | каталог файловой информационной базы 1С; если пустой, используется `<ProjectRootDir>\build\ib` |
 | `ProjectBranch` | необязательная ветка для клонирования |
 
 Если `ProjectCloneDir` пустой, каталог будет выбран автоматически: `%USERPROFILE%\source\<имя-репозитория>`.
-Если `EdtWorkspaceDir` пустой, рабочая область EDT создается внутри проекта: `<ProjectRootDir>\.metadata`.
 
 Если каталог уже содержит `.git`, скрипт считает репозиторий найденным и ничего не клонирует. Если каталог существует, но не является Git-репозиторием и не пустой, скрипт остановится с предупреждением.
 

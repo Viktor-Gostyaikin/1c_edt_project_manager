@@ -261,8 +261,8 @@ $form.Controls.Add((New-Button -Text "4. Проверить SSH GitLab" -X 286 -
     Run-And-SetStatus -CommandName "check-ssh-gitlab.cmd" -Caption "проверка SSH GitLab"
 }))
 
-$form.Controls.Add((New-Button -Text "5. Подготовить проект и EDT" -X 24 -Y 208 -OnClick {
-    Run-And-SetStatus -CommandName "clone-project.cmd" -Caption "подготовка проекта и рабочей области EDT"
+$form.Controls.Add((New-Button -Text "5. Развернуть репозиторий" -X 24 -Y 208 -OnClick {
+    Run-And-SetStatus -CommandName "clone-project.cmd" -Caption "развертывание репозитория проекта"
 }))
 
 $form.Controls.Add((New-Button -Text "6. Установить 7-Zip" -X 286 -Y 208 -OnClick {

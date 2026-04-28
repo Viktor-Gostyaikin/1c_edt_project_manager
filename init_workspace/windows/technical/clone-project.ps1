@@ -4,7 +4,6 @@ param(
     [string]$ProjectRepoUrl = "",
     [string]$ProjectCloneDir = "",
     [string]$ProjectRootDir = "",
-    [string]$EdtWorkspaceDir = "",
     [string]$ProjectBranch = "",
     [switch]$OpenAfterClone
 )
@@ -19,7 +18,6 @@ $variables = Get-InitWorkspaceVariables -ScriptDir $ScriptDir
 $ProjectRepoUrl = Get-InitWorkspaceValue -Variables $variables -Name "ProjectRepoUrl" -CurrentValue $ProjectRepoUrl -PreferCurrent:$PSBoundParameters.ContainsKey("ProjectRepoUrl")
 $ProjectCloneDir = Get-InitWorkspaceValue -Variables $variables -Name "ProjectCloneDir" -CurrentValue $ProjectCloneDir -PreferCurrent:$PSBoundParameters.ContainsKey("ProjectCloneDir")
 $ProjectRootDir = Get-InitWorkspaceValue -Variables $variables -Name "ProjectRootDir" -CurrentValue $ProjectRootDir -PreferCurrent:$PSBoundParameters.ContainsKey("ProjectRootDir")
-$EdtWorkspaceDir = Get-InitWorkspaceValue -Variables $variables -Name "EdtWorkspaceDir" -CurrentValue $EdtWorkspaceDir -PreferCurrent:$PSBoundParameters.ContainsKey("EdtWorkspaceDir")
 $ProjectBranch = Get-InitWorkspaceValue -Variables $variables -Name "ProjectBranch" -CurrentValue $ProjectBranch -PreferCurrent:$PSBoundParameters.ContainsKey("ProjectBranch")
 
 function Get-CommandPath {
@@ -89,10 +87,6 @@ if ([string]::IsNullOrWhiteSpace($ProjectRootDir)) {
     $ProjectRootDir = $ProjectCloneDir
 }
 
-if ([string]::IsNullOrWhiteSpace($EdtWorkspaceDir)) {
-    $EdtWorkspaceDir = Join-Path $ProjectRootDir ".metadata"
-}
-
 $gitPath = Get-CommandPath "git.exe"
 if (-not $gitPath) {
     Write-Host "[FAIL] git.exe не найден в PATH. Сначала установите Git for Windows." -ForegroundColor Red
@@ -103,7 +97,6 @@ Write-Host "Проверка репозитория проекта"
 Write-Host "URL: $ProjectRepoUrl"
 Write-Host "Каталог репозитория: $ProjectCloneDir"
 Write-Host "Каталог проекта: $ProjectRootDir"
-Write-Host "Рабочая область EDT: $EdtWorkspaceDir"
 
 if (Test-GitRepository -Path $ProjectCloneDir) {
     Write-Host "[OK] Репозиторий уже найден: $ProjectCloneDir" -ForegroundColor Green
@@ -115,14 +108,6 @@ if (Test-GitRepository -Path $ProjectCloneDir) {
 
     if ($OpenAfterClone) {
         Start-Process -FilePath "explorer.exe" -ArgumentList "`"$ProjectCloneDir`""
-    }
-
-    if (-not (Test-Path $EdtWorkspaceDir)) {
-        New-Item -ItemType Directory -Path $EdtWorkspaceDir -Force | Out-Null
-        Write-Host "[OK] Рабочая область EDT создана: $EdtWorkspaceDir" -ForegroundColor Green
-    }
-    else {
-        Write-Host "[OK] Рабочая область EDT найдена: $EdtWorkspaceDir" -ForegroundColor Green
     }
 
     exit 0
@@ -156,14 +141,6 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "[OK] Репозиторий склонирован: $ProjectCloneDir" -ForegroundColor Green
-
-if (-not (Test-Path $EdtWorkspaceDir)) {
-    New-Item -ItemType Directory -Path $EdtWorkspaceDir -Force | Out-Null
-    Write-Host "[OK] Рабочая область EDT создана: $EdtWorkspaceDir" -ForegroundColor Green
-}
-else {
-    Write-Host "[OK] Рабочая область EDT найдена: $EdtWorkspaceDir" -ForegroundColor Green
-}
 
 if ($OpenAfterClone) {
     Start-Process -FilePath "explorer.exe" -ArgumentList "`"$ProjectCloneDir`""
