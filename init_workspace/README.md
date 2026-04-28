@@ -1,0 +1,86 @@
+# Утилиты инициализации рабочего пространства разработчика 1С
+
+Каталог `init_workspace` содержит вспомогательные скрипты для подготовки рабочего места разработчика 1С под Windows. Скрипты помогают проверить окружение, установить типовые зависимости и задать локальные параметры, которые зависят от конкретного компьютера.
+
+## Что есть в этом каталоге
+
+| Задача | Скрипт |
+| --- | --- |
+| Проверить платформу 1С, серверный компонент, EDT, Git, Git LFS и Java | `windows\check-quickstart-deps.cmd` |
+| Установить Git for Windows и настроить Git | `windows\install-git.cmd` |
+| Установить 7-Zip | `windows\install-archiver.cmd` |
+| Скачать и установить платформу 1С | `windows\install-platform.cmd` |
+| Скачать и установить 1C:EDT | `windows\install-edt.cmd` |
+| Установить драйвер HASP | `windows\install-hasp-driver.cmd` |
+| Проверить SSH-доступ к GitLab | `windows\check-ssh-gitlab.cmd` |
+
+## Быстрый старт
+
+1. Перейдите в каталог:
+
+```cmd
+cd init_workspace\windows
+```
+
+2. Скопируйте пример локальных настроек:
+
+```cmd
+copy local.vars.example.ps1 local.vars.ps1
+```
+
+3. Заполните `local.vars.ps1` своими значениями:
+
+```powershell
+$InitWorkspace = @{
+    OneCUser = "user@example.com"
+    OneCPassword = ""
+
+    GitUserName = "Ваше Имя"
+    GitUserEmail = "you@example.com"
+    GitLabHost = "gitlab.corp.your.group"
+
+    PlatformVersion = "8.5.1.1302"
+    EdtVersion = "2026.1.0"
+}
+```
+
+4. Запустите проверку окружения:
+
+```cmd
+check-quickstart-deps.cmd
+```
+
+5. Если в выводе есть `FAIL`, установите недостающие компоненты соответствующими скриптами и повторите проверку.
+
+## Рекомендуемый порядок подготовки
+
+1. `install-git.cmd`
+2. `install-archiver.cmd`
+3. `install-platform.cmd`
+4. `install-edt.cmd`
+5. `check-ssh-gitlab.cmd`
+6. `check-quickstart-deps.cmd`
+
+> Скрипты установки платформы, EDT и HASP должны запускаться от имени администратора. Проверочные скрипты обычно запускаются без повышения прав.
+
+## Локальные настройки
+
+Файл `windows\local.vars.ps1` хранит параметры, которые не должны попадать в репозиторий.
+
+| Параметр | Назначение |
+| --- | --- |
+| `OneCUser`, `OneCPassword` | учетная запись для `releases.1c.ru` |
+| `GitUserName`, `GitUserEmail` | глобальные настройки Git |
+| `GitLabHost` | домен GitLab для проверки SSH |
+| `PlatformVersion`, `EdtVersion` | версии платформы 1С и EDT |
+| `PlatformDownloadDir`, `EdtDownloadDir` | каталоги скачивания дистрибутивов |
+| `PlatformExtractDir`, `EdtExtractDir` | каталоги распаковки установщиков |
+| `PlatformReleasePageUrl`, `EdtReleasePageUrl` | прямые страницы релизов на `releases.1c.ru` |
+
+Если параметр не задан, используется значение по умолчанию из соответствующего скрипта.
+
+## Что дальше
+
+Подробная документация для Windows-скриптов находится в `windows/README.md`.
+
+Если нужно только просмотреть пример переменных, откройте `windows/local.vars.example.ps1`.
