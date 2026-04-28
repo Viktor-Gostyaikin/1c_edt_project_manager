@@ -67,7 +67,7 @@ function Resolve-ProjectPaths {
     }
 
     if ([string]::IsNullOrWhiteSpace($script:EdtWorkspaceDir)) {
-        $script:EdtWorkspaceDir = $script:ProjectRootDir
+        $script:EdtWorkspaceDir = $script:ProjectCloneDir
     }
 }
 
@@ -103,6 +103,19 @@ function Get-EdtCliPath {
     $candidatePaths += @(Get-ChildItem "C:\Program Files (x86)\1C\1CE\components\1c-edt-*\eclipse\1cedtcli.exe" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName)
 
     return $candidatePaths | Where-Object { $_ } | Select-Object -First 1
+}
+
+function Format-Duration {
+    param(
+        [Parameter(Mandatory = $true)]
+        [TimeSpan]$Duration
+    )
+
+    if ($Duration.TotalHours -ge 1) {
+        return "{0:00}:{1:00}:{2:00}" -f [int]$Duration.TotalHours, $Duration.Minutes, $Duration.Seconds
+    }
+
+    return "{0:00}:{1:00}" -f [int]$Duration.TotalMinutes, $Duration.Seconds
 }
 
 Resolve-ProjectPaths
@@ -145,10 +158,15 @@ Write-Host "Команда:"
 Write-Host "  1cedtcli -data `"$EdtWorkspaceDir`" -command import --project `"$ProjectRootDir`""
 Write-Host ""
 
+$stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
 & $resolvedEdtCliPath -data $EdtWorkspaceDir -command import --project $ProjectRootDir
+$stopwatch.Stop()
+
 if ($LASTEXITCODE -ne 0) {
     Write-Host "[FAIL] Импорт проекта в рабочую область EDT завершился с ошибкой. Код: $LASTEXITCODE" -ForegroundColor Red
+    Write-Host "Время выполнения: $(Format-Duration -Duration $stopwatch.Elapsed)"
     exit $LASTEXITCODE
 }
 
 Write-Host "[OK] Рабочая область EDT инициализирована." -ForegroundColor Green
+Write-Host "Время выполнения: $(Format-Duration -Duration $stopwatch.Elapsed)"
