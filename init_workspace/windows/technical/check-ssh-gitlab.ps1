@@ -98,17 +98,17 @@ function Write-PermissionDeniedInstructions {
     Write-Host "  https://$HostName/-/user_settings/ssh_keys"
 
     Write-Host ""
-    Write-Host "[HINT] Подробная инструкция по настройке SSH для GitLab:"
+    Write-Host "[HINT] Подробная инструкция по настройке SSH для GitLab:" -ForegroundColor Yellow
     Write-Host "  https://archives.docs.gitlab.com/17.7/ee/user/ssh/"
 
     if ($PublicKeyPath) {
         Write-Host ""
-        Write-Host "Публичный ключ можно вывести командой:"
+        Write-Host "[HINT] Публичный ключ можно вывести командой:" -ForegroundColor Yellow
         Write-Host "  type ""$PublicKeyPath"""
     }
 
     Write-Host ""
-    Write-Host "После проверки ключа повторите команду:"
+    Write-Host "[HINT] После проверки ключа повторите команду:" -ForegroundColor Yellow
     Write-Host "  ssh -T git@$HostName"
 }
 
