@@ -186,5 +186,10 @@ try {
 }
 catch {
     Write-Host "[FAIL] Ошибка при проверке SSH: $($_.Exception.Message)" -ForegroundColor Red
+
+    if (($($_.Exception.Message) | Out-String) -match "Permission denied") {
+            Write-PermissionDeniedInstructions -HostName $GitLabHost -PublicKeyPath $sshKeyInfo.PublicKeyPath
+        }
+
     exit 1
 }
