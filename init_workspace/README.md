@@ -14,6 +14,10 @@
 | Скачать и установить 1C:EDT | `windows\commands\install-edt.cmd` |
 | Установить драйвер HASP | `windows\commands\install-hasp-driver.cmd` |
 | Проверить SSH-доступ к GitLab | `windows\commands\check-ssh-gitlab.cmd` |
+| Проверить и склонировать репозиторий проекта | `windows\commands\clone-project.cmd` |
+| Импортировать проект в рабочую область EDT | `windows\commands\init-edt-workspace.cmd` |
+| Запустить 1C:EDT CLI в интерактивном режиме | `windows\commands\start-edt-cli.cmd` |
+| Создать файловую информационную базу 1С | `windows\commands\create-infobase.cmd` |
 
 Пользовательские команды лежат в `windows\commands`. Техническая реализация на PowerShell лежит в `windows\technical`.
 
@@ -41,6 +45,11 @@ $InitWorkspace = @{
     GitUserName = "Ваше Имя"
     GitUserEmail = "you@example.com"
     GitLabHost = "gitlab.corp.your.group"
+    ProjectRepoUrl = "git@gitlab.corp.your.group:group/project.git"
+    ProjectCloneDir = "C:\src\project"
+    EdtWorkspaceDir = ""
+    InfoBasePath = ""
+    EdtCliPath = ""
 
     PlatformVersion = "8.5.1.1302"
     EdtVersion = "2026.1.0"
@@ -58,11 +67,15 @@ start-workspace-setup.cmd
 ## Рекомендуемый порядок подготовки
 
 1. `commands\install-git.cmd`
-2. `commands\install-archiver.cmd`
-3. `commands\install-platform.cmd`
-4. `commands\install-edt.cmd`
-5. `commands\check-ssh-gitlab.cmd`
-6. `commands\check-quickstart-deps.cmd`
+2. `commands\check-ssh-gitlab.cmd`
+3. `commands\clone-project.cmd`
+4. `commands\install-archiver.cmd`
+5. `commands\install-platform.cmd`
+6. `commands\install-edt.cmd`
+7. `commands\init-edt-workspace.cmd`
+8. `commands\start-edt-cli.cmd`
+9. `commands\create-infobase.cmd`
+10. `commands\check-quickstart-deps.cmd`
 
 > Мастер `start-workspace-setup.cmd` требует права администратора и при обычном запуске сам покажет UAC-запрос.
 
@@ -75,7 +88,8 @@ start-workspace-setup.cmd
 | `OneCUser`, `OneCPassword` | учетная запись для `releases.1c.ru` |
 | `GitUserName`, `GitUserEmail` | глобальные настройки Git |
 | `GitLabHost` | домен GitLab для проверки SSH |
-| `PlatformVersion`, `EdtVersion` | версии платформы 1С и EDT |
+| `ProjectRepoUrl`, `ProjectCloneDir`, `ProjectRootDir`, `EdtWorkspaceDir`, `InfoBasePath`, `InfoBaseListName`, `ProjectBranch` | URL репозитория, каталоги проекта, EDT workspace и файловой ИБ, ветка проекта |
+| `PlatformVersion`, `V8Path`, `EdtVersion`, `EdtCliPath` | версии платформы/EDT и пути к `1cv8.exe`/`1cedtcli`, если они не найдены автоматически |
 | `PlatformDownloadDir`, `EdtDownloadDir` | каталоги скачивания дистрибутивов |
 | `PlatformExtractDir`, `EdtExtractDir` | каталоги распаковки установщиков |
 | `PlatformReleasePageUrl`, `EdtReleasePageUrl` | прямые страницы релизов на `releases.1c.ru` |

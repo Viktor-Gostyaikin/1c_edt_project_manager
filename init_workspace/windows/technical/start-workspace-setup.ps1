@@ -35,6 +35,40 @@ function Show-Warning {
     ) | Out-Null
 }
 
+function Restart-Elevated {
+    $argumentList = @(
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "`"$PSCommandPath`""
+    )
+
+    foreach ($argument in $args) {
+        $escapedArgument = $argument -replace '"', '\"'
+        $argumentList += "`"$escapedArgument`""
+    }
+
+    try {
+        Start-Process -FilePath "powershell.exe" -ArgumentList $argumentList -Verb RunAs | Out-Null
+        return $true
+    }
+    catch {
+        Show-Warning "Не удалось перезапустить мастер с правами администратора:`r`n`r`n$($_.Exception.Message)"
+        return $false
+    }
+}
+
+if (-not (Test-Administrator)) {
+    Show-Warning "Для запуска мастера требуются права администратора.`r`n`r`nПосле закрытия этого окна появится запрос контроля учетных записей Windows."
+
+    if (Restart-Elevated @args) {
+        exit 0
+    }
+
+    exit 1
+}
+
 function Invoke-WorkspaceCommand {
     param(
         [Parameter(Mandatory = $true)]
@@ -144,8 +178,8 @@ function New-StatusLabel {
 $form = New-Object System.Windows.Forms.Form
 $form.Text = "Подготовка рабочего места 1С"
 $form.StartPosition = "CenterScreen"
-$form.Size = New-Object System.Drawing.Size(560, 560)
-$form.MinimumSize = New-Object System.Drawing.Size(560, 560)
+$form.Size = New-Object System.Drawing.Size(560, 730)
+$form.MinimumSize = New-Object System.Drawing.Size(560, 730)
 $form.Font = New-Object System.Drawing.Font("Segoe UI", 9)
 $form.MaximizeBox = $false
 
@@ -163,10 +197,10 @@ $subtitle.Size = New-Object System.Drawing.Size(500, 24)
 $subtitle.Font = New-Object System.Drawing.Font("Segoe UI", 9)
 $form.Controls.Add($subtitle)
 
-$status = New-StatusLabel -Text "Последнее действие: не запускалось" -Y 470
+$status = New-StatusLabel -Text "Последнее действие: не запускалось" -Y 640
 $form.Controls.Add($status)
 
-$adminStatus = New-StatusLabel -Text "" -Y 492
+$adminStatus = New-StatusLabel -Text "" -Y 662
 if (Test-Administrator) {
     $adminStatus.Text = "Права администратора: да"
     $adminStatus.ForeColor = [System.Drawing.Color]::DarkGreen
@@ -225,38 +259,54 @@ $form.Controls.Add((New-Button -Text "4. Проверить SSH GitLab" -X 286 -
     Run-And-SetStatus -CommandName "check-ssh-gitlab.cmd" -Caption "проверка SSH GitLab"
 }))
 
-$form.Controls.Add((New-Button -Text "5. Установить 7-Zip" -X 24 -Y 208 -OnClick {
+$form.Controls.Add((New-Button -Text "5. Подготовить проект и EDT" -X 24 -Y 208 -OnClick {
+    Run-And-SetStatus -CommandName "clone-project.cmd" -Caption "подготовка проекта и рабочей области EDT"
+}))
+
+$form.Controls.Add((New-Button -Text "6. Установить 7-Zip" -X 286 -Y 208 -OnClick {
     Run-And-SetStatus -CommandName "install-archiver.cmd" -Caption "установка 7-Zip" -RequiresAdmin
 }))
 
-$form.Controls.Add((New-Button -Text "6. Установить платформу 1С" -X 286 -Y 208 -OnClick {
+$form.Controls.Add((New-Button -Text "7. Установить платформу 1С" -X 24 -Y 264 -OnClick {
     Run-And-SetStatus -CommandName "install-platform.cmd" -Caption "установка платформы 1С" -RequiresAdmin
 }))
 
-$form.Controls.Add((New-Button -Text "7. Установить EDT" -X 24 -Y 264 -OnClick {
+$form.Controls.Add((New-Button -Text "8. Установить EDT" -X 286 -Y 264 -OnClick {
     Run-And-SetStatus -CommandName "install-edt.cmd" -Caption "установка EDT" -RequiresAdmin
 }))
 
-$form.Controls.Add((New-Button -Text "8. Установить HASP" -X 286 -Y 264 -OnClick {
+$form.Controls.Add((New-Button -Text "9. Инициализировать EDT" -X 24 -Y 320 -OnClick {
+    Run-And-SetStatus -CommandName "init-edt-workspace.cmd" -Caption "инициализация рабочей области EDT"
+}))
+
+$form.Controls.Add((New-Button -Text "10. Запустить EDT CLI" -X 286 -Y 320 -OnClick {
+    Run-And-SetStatus -CommandName "start-edt-cli.cmd" -Caption "интерактивный режим EDT CLI"
+}))
+
+$form.Controls.Add((New-Button -Text "11. Создать ИБ" -X 24 -Y 386 -OnClick {
+    Run-And-SetStatus -CommandName "create-infobase.cmd" -Caption "создание информационной базы"
+}))
+
+$form.Controls.Add((New-Button -Text "12. Установить HASP" -X 286 -Y 386 -OnClick {
     Run-And-SetStatus -CommandName "install-hasp-driver.cmd" -Caption "установка HASP" -RequiresAdmin
 }))
 
-$form.Controls.Add((New-Button -Text "Итоговая проверка" -X 24 -Y 330 -OnClick {
+$form.Controls.Add((New-Button -Text "Итоговая проверка" -X 24 -Y 452 -OnClick {
     Run-And-SetStatus -CommandName "check-quickstart-deps.cmd" -Caption "итоговая проверка"
 }))
 
-$form.Controls.Add((New-Button -Text "Открыть папку команд" -X 286 -Y 330 -OnClick {
+$form.Controls.Add((New-Button -Text "Открыть папку команд" -X 286 -Y 452 -OnClick {
     Open-Folder -Path $CommandsDir
     $status.Text = "Последнее действие: открыта папка команд"
 }))
 
-$form.Controls.Add((New-Button -Text "Открыть README" -X 24 -Y 386 -OnClick {
+$form.Controls.Add((New-Button -Text "Открыть README" -X 24 -Y 508 -OnClick {
     $readmePath = Join-Path $WindowsDir "README.md"
     Start-Process -FilePath "notepad.exe" -ArgumentList "`"$readmePath`""
     $status.Text = "Последнее действие: открыт README"
 }))
 
-$form.Controls.Add((New-Button -Text "Закрыть" -X 286 -Y 386 -OnClick {
+$form.Controls.Add((New-Button -Text "Закрыть" -X 286 -Y 508 -OnClick {
     $form.Close()
 }))
 

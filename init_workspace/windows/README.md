@@ -27,6 +27,11 @@ $InitWorkspace = @{
     GitUserName = "Ваше Имя"
     GitUserEmail = "you@example.com"
     GitLabHost = "gitlab.corp.your.group"
+    ProjectRepoUrl = "git@gitlab.corp.your.group:group/project.git"
+    ProjectCloneDir = "C:\src\project"
+    EdtWorkspaceDir = ""
+    InfoBasePath = ""
+    EdtCliPath = ""
     PlatformVersion = "8.5.1.1302"
     EdtVersion = "2026.1.0"
 }
@@ -56,6 +61,10 @@ $InitWorkspace = @{
 | `commands\install-hasp-driver.cmd` | Устанавливает драйвер HASP из поставки платформы |
 | `commands\check-quickstart-deps.cmd` | Проверяет базовое окружение: платформа, сервер, EDT, Git, Git LFS, Git CRLF и Java |
 | `commands\check-ssh-gitlab.cmd` | Проверяет SSH-подключение к GitLab и добавляет ключ хоста в `known_hosts` |
+| `commands\clone-project.cmd` | Проверяет наличие репозитория проекта и клонирует его при отсутствии |
+| `commands\init-edt-workspace.cmd` | Импортирует проект 1C:EDT в рабочую область через `1cedtcli` |
+| `commands\start-edt-cli.cmd` | Запускает 1C:EDT CLI в интерактивном режиме |
+| `commands\create-infobase.cmd` | Создает файловую информационную базу 1С в каталоге проекта |
 
 ## Рекомендуемый workflow
 
@@ -73,11 +82,15 @@ start-workspace-setup.cmd
 2. Настроить `local.vars.ps1`.
 3. Установить Git.
 4. Проверить SSH GitLab.
-5. Установить 7-Zip.
-6. Установить платформу 1С.
-7. Установить EDT.
-8. Установить HASP.
-9. Запустить итоговую проверку.
+5. Подготовить проект и рабочую область EDT.
+6. Установить 7-Zip.
+7. Установить платформу 1С.
+8. Установить EDT.
+9. Инициализировать рабочую область EDT.
+10. При необходимости запустить интерактивный EDT CLI.
+11. Создать информационную базу 1С.
+12. Установить HASP.
+13. Запустить итоговую проверку.
 
 Те же действия можно запускать отдельными командами из `commands`.
 
@@ -132,6 +145,64 @@ type "%USERPROFILE%\.ssh\id_ed25519.pub"
 ```cmd
 ssh -T git@gitlab.corp.itworks.group
 ```
+
+## Проверка и клонирование проекта
+
+Скрипт `commands\clone-project.cmd` использует параметры из `local.vars.ps1`:
+
+| Параметр | Назначение |
+| --- | --- |
+| `ProjectRepoUrl` | SSH или HTTPS URL репозитория проекта |
+| `ProjectCloneDir` | каталог, куда нужно клонировать репозиторий |
+| `ProjectRootDir` | корневой каталог проекта; если пустой, используется `ProjectCloneDir` |
+| `EdtWorkspaceDir` | каталог рабочей области EDT |
+| `InfoBasePath` | каталог файловой информационной базы 1С; если пустой, используется `<ProjectRootDir>\build\ib` |
+| `ProjectBranch` | необязательная ветка для клонирования |
+
+Если `ProjectCloneDir` пустой, каталог будет выбран автоматически: `%USERPROFILE%\source\<имя-репозитория>`.
+Если `EdtWorkspaceDir` пустой, рабочая область EDT создается внутри проекта: `<ProjectRootDir>\.metadata`.
+
+Если каталог уже содержит `.git`, скрипт считает репозиторий найденным и ничего не клонирует. Если каталог существует, но не является Git-репозиторием и не пустой, скрипт остановится с предупреждением.
+
+## Инициализация рабочей области EDT
+
+Скрипт `commands\init-edt-workspace.cmd` выполняется после клонирования репозитория и установки EDT.
+
+Он запускает импорт проекта в рабочую область:
+
+```cmd
+1cedtcli -data "<EdtWorkspaceDir>" -command import --project "<ProjectRootDir>"
+```
+
+`1cedtcli` ищется в `PATH` и типовых каталогах установки EDT. Если CLI не найден автоматически, укажите путь в `local.vars.ps1`:
+
+```powershell
+EdtCliPath = "C:\Program Files\1C\1CE\components\1c-edt-2026.1.0\1cedtcli.exe"
+```
+
+Для интерактивного режима используйте `commands\start-edt-cli.cmd`. Он запускает:
+
+```cmd
+1cedtcli -data "<EdtWorkspaceDir>"
+```
+
+## Создание информационной базы 1С
+
+Скрипт `commands\create-infobase.cmd` создает файловую информационную базу 1С. По умолчанию каталог базы: `<ProjectRootDir>\build\ib`.
+
+Он использует команду платформы:
+
+```cmd
+1cv8.exe CREATEINFOBASE File="<InfoBasePath>";
+```
+
+`1cv8.exe` ищется в `PATH` и типовых каталогах установки платформы. Если клиент не найден автоматически, укажите путь в `local.vars.ps1`:
+
+```powershell
+V8Path = "C:\Program Files\1cv8\8.5.1.1302\bin\1cv8.exe"
+```
+
+Если база уже создана и в каталоге есть `1Cv8.1CD`, команда завершится успешно без повторного создания.
 
 ## Устранение проблем
 
