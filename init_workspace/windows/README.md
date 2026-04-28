@@ -31,7 +31,9 @@ $InitWorkspace = @{
     ProjectCloneDir = "C:\src\project"
     EdtWorkspaceDir = ""
     InfoBasePath = ""
+    EdtPath = ""
     EdtCliPath = ""
+    EdtIniPath = ""
     PlatformVersion = "8.5.1.1302"
     EdtVersion = "2026.1.0"
 }
@@ -63,7 +65,8 @@ $InitWorkspace = @{
 | `commands\check-ssh-gitlab.cmd` | Проверяет SSH-подключение к GitLab и добавляет ключ хоста в `known_hosts` |
 | `commands\clone-project.cmd` | Развертывает репозиторий проекта: проверяет наличие локального клона и клонирует его при отсутствии |
 | `commands\init-edt-workspace.cmd` | Импортирует проект 1C:EDT в рабочую область через `1cedtcli` |
-| `commands\start-edt-cli.cmd` | Запускает 1C:EDT CLI в интерактивном режиме |
+| `commands\open-edt-config.cmd` | Открывает файл настроек `1cedt.ini` |
+| `commands\start-edt.cmd` | Запускает приложение 1C:EDT с рабочей областью |
 | `commands\create-infobase.cmd` | Создает файловую информационную базу 1С в каталоге проекта |
 
 ## Рекомендуемый workflow
@@ -86,11 +89,12 @@ start-workspace-setup.cmd
 6. Установить 7-Zip.
 7. Установить платформу 1С.
 8. Установить EDT.
-9. Инициализировать рабочую область EDT.
-10. При необходимости запустить интерактивный EDT CLI.
-11. Создать информационную базу 1С.
-12. Установить HASP.
-13. Запустить итоговую проверку.
+9. При необходимости открыть и настроить `1cedt.ini`.
+10. Инициализировать рабочую область EDT.
+11. Запустить EDT.
+12. Создать информационную базу 1С.
+13. Установить HASP.
+14. Запустить итоговую проверку.
 
 Те же действия можно запускать отдельными командами из `commands`.
 
@@ -177,10 +181,40 @@ ssh -T git@gitlab.corp.itworks.group
 EdtCliPath = "C:\Program Files\1C\1CE\components\1c-edt-2026.1.0\1cedtcli.exe"
 ```
 
-Для интерактивного режима используйте `commands\start-edt-cli.cmd`. Он запускает:
+## Настройка 1C:EDT
+
+При установке без интернета настройки 1C:EDT нужно выполнять в файле `1cedt.ini`.
+
+Откройте файл командой:
 
 ```cmd
-1cedtcli -data "<EdtWorkspaceDir>"
+commands\open-edt-config.cmd
+```
+
+При стандартной установке файл находится в каталоге компонента EDT. Версия может отличаться:
+
+```cmd
+%ProgramFiles%\1C\1CE\components\1c-edt-2022.2.5+10-x86_64\1cedt.ini
+```
+
+Если файл не найден автоматически, укажите путь в `local.vars.ps1`:
+
+```powershell
+EdtIniPath = "C:\Program Files\1C\1CE\components\1c-edt-2022.2.5+10-x86_64\1cedt.ini"
+```
+
+## Запуск 1C:EDT
+
+Для запуска приложения используйте `commands\start-edt.cmd`. Он запускает:
+
+```cmd
+1cedtstart.exe -data "<EdtWorkspaceDir>"
+```
+
+Если приложение не найдено автоматически, укажите путь в `local.vars.ps1`:
+
+```powershell
+EdtPath = "C:\Program Files\1C\1CE\components\1c-edt-2026.1.0\1cedtstart.exe"
 ```
 
 ## Создание информационной базы 1С

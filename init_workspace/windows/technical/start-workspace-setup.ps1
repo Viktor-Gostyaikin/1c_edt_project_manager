@@ -277,38 +277,42 @@ $form.Controls.Add((New-Button -Text "8. Установить EDT" -X 286 -Y 264
     Run-And-SetStatus -CommandName "install-edt.cmd" -Caption "установка EDT" -RequiresAdmin
 }))
 
-$form.Controls.Add((New-Button -Text "9. Инициализировать EDT" -X 24 -Y 320 -OnClick {
+$form.Controls.Add((New-Button -Text "9. Открыть 1cedt.ini" -X 24 -Y 320 -OnClick {
+    Run-And-SetStatus -CommandName "open-edt-config.cmd" -Caption "открытие 1cedt.ini"
+}))
+
+$form.Controls.Add((New-Button -Text "10. Инициализировать EDT" -X 286 -Y 320 -OnClick {
     Run-And-SetStatus -CommandName "init-edt-workspace.cmd" -Caption "инициализация рабочей области EDT"
 }))
 
-$form.Controls.Add((New-Button -Text "10. Запустить EDT CLI" -X 286 -Y 320 -OnClick {
-    Run-And-SetStatus -CommandName "start-edt-cli.cmd" -Caption "интерактивный режим EDT CLI"
+$form.Controls.Add((New-Button -Text "11. Запустить EDT" -X 24 -Y 386 -OnClick {
+    Run-And-SetStatus -CommandName "start-edt.cmd" -Caption "запуск приложения EDT"
 }))
 
-$form.Controls.Add((New-Button -Text "11. Создать ИБ" -X 24 -Y 386 -OnClick {
+$form.Controls.Add((New-Button -Text "12. Создать ИБ" -X 286 -Y 386 -OnClick {
     Run-And-SetStatus -CommandName "create-infobase.cmd" -Caption "создание информационной базы"
 }))
 
-$form.Controls.Add((New-Button -Text "12. Установить HASP" -X 286 -Y 386 -OnClick {
+$form.Controls.Add((New-Button -Text "13. Установить HASP" -X 24 -Y 452 -OnClick {
     Run-And-SetStatus -CommandName "install-hasp-driver.cmd" -Caption "установка HASP" -RequiresAdmin
 }))
 
-$form.Controls.Add((New-Button -Text "Итоговая проверка" -X 24 -Y 452 -OnClick {
+$form.Controls.Add((New-Button -Text "Итоговая проверка" -X 286 -Y 452 -OnClick {
     Run-And-SetStatus -CommandName "check-quickstart-deps.cmd" -Caption "итоговая проверка"
 }))
 
-$form.Controls.Add((New-Button -Text "Открыть папку команд" -X 286 -Y 452 -OnClick {
+$form.Controls.Add((New-Button -Text "Открыть папку команд" -X 24 -Y 508 -OnClick {
     Open-Folder -Path $CommandsDir
     $status.Text = "Последнее действие: открыта папка команд"
 }))
 
-$form.Controls.Add((New-Button -Text "Открыть README" -X 24 -Y 508 -OnClick {
+$form.Controls.Add((New-Button -Text "Открыть README" -X 286 -Y 508 -OnClick {
     $readmePath = Join-Path $WindowsDir "README.md"
     Start-Process -FilePath "notepad.exe" -ArgumentList "`"$readmePath`""
     $status.Text = "Последнее действие: открыт README"
 }))
 
-$form.Controls.Add((New-Button -Text "Закрыть" -X 286 -Y 508 -OnClick {
+$form.Controls.Add((New-Button -Text "Закрыть" -X 286 -Y 574 -OnClick {
     $form.Close()
 }))
 

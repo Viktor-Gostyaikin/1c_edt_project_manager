@@ -5,7 +5,7 @@ param(
     [string]$ProjectCloneDir = "",
     [string]$ProjectRootDir = "",
     [string]$EdtWorkspaceDir = "",
-    [string]$EdtCliPath = ""
+    [string]$EdtPath = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -19,7 +19,7 @@ $ProjectRepoUrl = Get-InitWorkspaceValue -Variables $variables -Name "ProjectRep
 $ProjectCloneDir = Get-InitWorkspaceValue -Variables $variables -Name "ProjectCloneDir" -CurrentValue $ProjectCloneDir -PreferCurrent:$PSBoundParameters.ContainsKey("ProjectCloneDir")
 $ProjectRootDir = Get-InitWorkspaceValue -Variables $variables -Name "ProjectRootDir" -CurrentValue $ProjectRootDir -PreferCurrent:$PSBoundParameters.ContainsKey("ProjectRootDir")
 $EdtWorkspaceDir = Get-InitWorkspaceValue -Variables $variables -Name "EdtWorkspaceDir" -CurrentValue $EdtWorkspaceDir -PreferCurrent:$PSBoundParameters.ContainsKey("EdtWorkspaceDir")
-$EdtCliPath = Get-InitWorkspaceValue -Variables $variables -Name "EdtCliPath" -CurrentValue $EdtCliPath -PreferCurrent:$PSBoundParameters.ContainsKey("EdtCliPath")
+$EdtPath = Get-InitWorkspaceValue -Variables $variables -Name "EdtPath" -CurrentValue $EdtPath -PreferCurrent:$PSBoundParameters.ContainsKey("EdtPath")
 
 function Get-CommandPath {
     param(
@@ -71,16 +71,30 @@ function Resolve-ProjectPaths {
     }
 }
 
-function Get-EdtCliPath {
+function Get-EdtApplicationPath {
     param(
         [string]$PreferredPath = ""
     )
 
-    if (-not [string]::IsNullOrWhiteSpace($PreferredPath) -and (Test-Path $PreferredPath)) {
-        return (Resolve-Path $PreferredPath).Path
+    if (-not [string]::IsNullOrWhiteSpace($PreferredPath)) {
+        if (Test-Path $PreferredPath -PathType Leaf) {
+            return (Resolve-Path $PreferredPath).Path
+        }
+
+        foreach ($fileName in @("1cedtstart.exe", "1cedt.exe")) {
+            $candidate = Join-Path $PreferredPath $fileName
+            if (Test-Path $candidate -PathType Leaf) {
+                return (Resolve-Path $candidate).Path
+            }
+
+            $eclipseCandidate = Join-Path (Join-Path $PreferredPath "eclipse") $fileName
+            if (Test-Path $eclipseCandidate -PathType Leaf) {
+                return (Resolve-Path $eclipseCandidate).Path
+            }
+        }
     }
 
-    foreach ($commandName in @("1cedtcli.exe", "1cedtcli.cmd", "1cedtcli.bat", "1cedtcli")) {
+    foreach ($commandName in @("1cedtstart.exe", "1cedt.exe")) {
         $commandPath = Get-CommandPath $commandName
         if ($commandPath) {
             return $commandPath
@@ -88,12 +102,14 @@ function Get-EdtCliPath {
     }
 
     $candidatePaths = @()
-    $candidatePaths += @(Get-ChildItem "C:\Program Files\1C\1CE\components\1c-edt-*\1cedtcli.exe" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName)
-    $candidatePaths += @(Get-ChildItem "C:\Program Files\1C\1CE\components\1c-edt-*\eclipse\1cedtcli.exe" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName)
-    $candidatePaths += @(Get-ChildItem "C:\Program Files (x86)\1C\1CE\components\1c-edt-*\1cedtcli.exe" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName)
-    $candidatePaths += @(Get-ChildItem "C:\Program Files (x86)\1C\1CE\components\1c-edt-*\eclipse\1cedtcli.exe" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName)
+    $candidatePaths += @(Get-ChildItem "C:\Program Files\1C\1CE\components\1c-edt-*\1cedtstart.exe" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName)
+    $candidatePaths += @(Get-ChildItem "C:\Program Files\1C\1CE\components\1c-edt-*\1cedt.exe" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName)
+    $candidatePaths += @(Get-ChildItem "C:\Program Files\1C\1CE\components\1c-edt-*\eclipse\1cedt.exe" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName)
+    $candidatePaths += @(Get-ChildItem "C:\Program Files (x86)\1C\1CE\components\1c-edt-*\1cedtstart.exe" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName)
+    $candidatePaths += @(Get-ChildItem "C:\Program Files (x86)\1C\1CE\components\1c-edt-*\1cedt.exe" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName)
+    $candidatePaths += @(Get-ChildItem "C:\Program Files (x86)\1C\1CE\components\1c-edt-*\eclipse\1cedt.exe" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName)
 
-    return $candidatePaths | Where-Object { $_ } | Select-Object -First 1
+    return $candidatePaths | Where-Object { $_ } | Sort-Object -Descending | Select-Object -First 1
 }
 
 Resolve-ProjectPaths
@@ -104,11 +120,11 @@ if ([string]::IsNullOrWhiteSpace($EdtWorkspaceDir)) {
     exit 1
 }
 
-$resolvedEdtCliPath = Get-EdtCliPath -PreferredPath $EdtCliPath
-if (-not $resolvedEdtCliPath) {
-    Write-Host "[FAIL] 1cedtcli не найден." -ForegroundColor Red
+$resolvedEdtPath = Get-EdtApplicationPath -PreferredPath $EdtPath
+if (-not $resolvedEdtPath) {
+    Write-Host "[FAIL] Приложение 1C:EDT не найдено." -ForegroundColor Red
     Write-Host "Установите 1C:EDT или укажите путь в local.vars.ps1:"
-    Write-Host '  EdtCliPath = "C:\Program Files\1C\1CE\components\1c-edt-2026.1.0\1cedtcli.exe"'
+    Write-Host '  EdtPath = "C:\Program Files\1C\1CE\components\1c-edt-2026.1.0\1cedtstart.exe"'
     exit 1
 }
 
@@ -116,16 +132,14 @@ if (-not (Test-Path $EdtWorkspaceDir)) {
     New-Item -ItemType Directory -Path $EdtWorkspaceDir -Force | Out-Null
 }
 
-Write-Host "Запуск 1C:EDT CLI в интерактивном режиме"
-Write-Host "1cedtcli: $resolvedEdtCliPath"
+Write-Host "Запуск приложения 1C:EDT"
+Write-Host "1C:EDT: $resolvedEdtPath"
 Write-Host "Рабочая область EDT: $EdtWorkspaceDir"
 Write-Host ""
 Write-Host "Команда:"
-Write-Host "  1cedtcli -data `"$EdtWorkspaceDir`""
+Write-Host "  `"$resolvedEdtPath`" -data `"$EdtWorkspaceDir`""
 Write-Host ""
 
-& $resolvedEdtCliPath -data $EdtWorkspaceDir
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "[FAIL] 1C:EDT CLI завершился с ошибкой. Код: $LASTEXITCODE" -ForegroundColor Red
-    exit $LASTEXITCODE
-}
+$process = Start-Process -FilePath $resolvedEdtPath -ArgumentList @("-data", "`"$EdtWorkspaceDir`"") -PassThru
+Write-Host "[OK] 1C:EDT запущена. PID: $($process.Id)" -ForegroundColor Green
+exit 0

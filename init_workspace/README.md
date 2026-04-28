@@ -16,7 +16,8 @@
 | Проверить SSH-доступ к GitLab | `windows\commands\check-ssh-gitlab.cmd` |
 | Развернуть репозиторий проекта | `windows\commands\clone-project.cmd` |
 | Импортировать проект в рабочую область EDT | `windows\commands\init-edt-workspace.cmd` |
-| Запустить 1C:EDT CLI в интерактивном режиме | `windows\commands\start-edt-cli.cmd` |
+| Открыть настройки 1C:EDT | `windows\commands\open-edt-config.cmd` |
+| Запустить приложение 1C:EDT | `windows\commands\start-edt.cmd` |
 | Создать файловую информационную базу 1С | `windows\commands\create-infobase.cmd` |
 
 Пользовательские команды лежат в `windows\commands`. Техническая реализация на PowerShell лежит в `windows\technical`.
@@ -49,7 +50,9 @@ $InitWorkspace = @{
     ProjectCloneDir = "C:\src\project"
     EdtWorkspaceDir = ""
     InfoBasePath = ""
+    EdtPath = ""
     EdtCliPath = ""
+    EdtIniPath = ""
 
     PlatformVersion = "8.5.1.1302"
     EdtVersion = "2026.1.0"
@@ -72,10 +75,11 @@ start-workspace-setup.cmd
 4. `commands\install-archiver.cmd`
 5. `commands\install-platform.cmd`
 6. `commands\install-edt.cmd`
-7. `commands\init-edt-workspace.cmd`
-8. `commands\start-edt-cli.cmd`
-9. `commands\create-infobase.cmd`
-10. `commands\check-quickstart-deps.cmd`
+7. `commands\open-edt-config.cmd`
+8. `commands\init-edt-workspace.cmd`
+9. `commands\start-edt.cmd`
+10. `commands\create-infobase.cmd`
+11. `commands\check-quickstart-deps.cmd`
 
 > Мастер `start-workspace-setup.cmd` требует права администратора и при обычном запуске сам покажет UAC-запрос.
 
@@ -89,7 +93,7 @@ start-workspace-setup.cmd
 | `GitUserName`, `GitUserEmail` | глобальные настройки Git |
 | `GitLabHost` | домен GitLab для проверки SSH |
 | `ProjectRepoUrl`, `ProjectCloneDir`, `ProjectRootDir`, `EdtWorkspaceDir`, `InfoBasePath`, `InfoBaseListName`, `ProjectBranch` | URL репозитория, каталоги проекта, EDT workspace и файловой ИБ, ветка проекта |
-| `PlatformVersion`, `V8Path`, `EdtVersion`, `EdtCliPath` | версии платформы/EDT и пути к `1cv8.exe`/`1cedtcli`, если они не найдены автоматически |
+| `PlatformVersion`, `V8Path`, `EdtVersion`, `EdtPath`, `EdtCliPath`, `EdtIniPath` | версии платформы/EDT и пути к `1cv8.exe`, приложению EDT, `1cedtcli` и `1cedt.ini`, если они не найдены автоматически |
 | `PlatformDownloadDir`, `EdtDownloadDir` | каталоги скачивания дистрибутивов |
 | `PlatformExtractDir`, `EdtExtractDir` | каталоги распаковки установщиков |
 | `PlatformReleasePageUrl`, `EdtReleasePageUrl` | прямые страницы релизов на `releases.1c.ru` |
