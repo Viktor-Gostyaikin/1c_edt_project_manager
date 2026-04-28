@@ -169,15 +169,17 @@ if (-not $existingKey) {
 }
 
 try {
-    $result = & ssh -T -o BatchMode=yes -o ConnectTimeout=10 git@$GitLabHost "echo 'SSH connection successful'" 2>&1
-    if ($LASTEXITCODE -eq 0) {
+    $result = & ssh -T -o BatchMode=yes -o ConnectTimeout=10 git@$GitLabHost 2>&1
+    $resultText = $result | Out-String
+
+    if ($LASTEXITCODE -eq 0 -or $resultText -match "Welcome to GitLab|successfully authenticated") {
         Write-Host "[OK] SSH-подключение к $GitLabHost успешно." -ForegroundColor Green
         exit 0
     }
     else {
         Write-Host "[FAIL] SSH-подключение к $GitLabHost не удалось: $result" -ForegroundColor Red
 
-        if (($result | Out-String) -match "Permission denied") {
+        if ($resultText -match "Permission denied") {
             Write-PermissionDeniedInstructions -HostName $GitLabHost -PublicKeyPath $sshKeyInfo.PublicKeyPath
         }
 
@@ -188,8 +190,8 @@ catch {
     Write-Host "[FAIL] Ошибка при проверке SSH: $($_.Exception.Message)" -ForegroundColor Red
 
     if (($($_.Exception.Message) | Out-String) -match "Permission denied") {
-            Write-PermissionDeniedInstructions -HostName $GitLabHost -PublicKeyPath $sshKeyInfo.PublicKeyPath
-        }
+        Write-PermissionDeniedInstructions -HostName $GitLabHost -PublicKeyPath $sshKeyInfo.PublicKeyPath
+    }
 
     exit 1
 }
