@@ -84,7 +84,16 @@ $InitWorkspace = @{
 ## Проверка SSH к GitLab
 
 Скрипт `check-ssh-gitlab.cmd` использует `GitLabHost` из `local.vars.ps1`.
-Он добавляет хост-ключ в `%USERPROFILE%\.ssh\known_hosts` и затем выполняет подключение к `git@<GitLabHost>`.
+Он проверяет наличие локального SSH-ключа, добавляет хост-ключ в `%USERPROFILE%\.ssh\known_hosts` и затем выполняет подключение к `git@<GitLabHost>`.
+
+Если SSH-ключ не найден, скрипт выведет предупреждение и команды для создания ключа:
+
+```cmd
+ssh-keygen -t ed25519 -C "you@example.com" -f "%USERPROFILE%\.ssh\id_ed25519"
+type "%USERPROFILE%\.ssh\id_ed25519.pub"
+```
+
+Содержимое `.pub`-файла нужно добавить в GitLab: `Preferences > SSH Keys`.
 
 ### Распространенные ошибки
 
