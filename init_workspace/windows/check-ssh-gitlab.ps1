@@ -14,6 +14,8 @@ $RepoRoot = (Resolve-Path (Join-Path $ScriptDir "..\..\..")).Path
 $variables = Get-InitWorkspaceVariables -ScriptDir $ScriptDir
 $GitLabHost = Get-InitWorkspaceValue -Variables $variables -Name "GitLabHost" -CurrentValue $GitLabHost -PreferCurrent:$PSBoundParameters.ContainsKey("GitLabHost")
 
+$GitLabHost = $GitLabHost -replace '^https?://', ''
+
 if (-not $GitLabHost) {
     Write-Host "GitLabHost не указан в local.vars.ps1 или параметре." -ForegroundColor Red
     exit 1
@@ -30,13 +32,18 @@ if (-not (Test-Path $knownHostsPath)) {
 $existingKey = Get-Content $knownHostsPath | Where-Object { $_ -match "^$GitLabHost " }
 if (-not $existingKey) {
     Write-Host "Добавляю хост-ключ для $GitLabHost в known_hosts..."
-    $keyScan = & ssh-keyscan -H $GitLabHost 2>$null
-    if ($keyScan) {
-        Add-Content -Path $knownHostsPath -Value $keyScan
-        Write-Host "Хост-ключ добавлен." -ForegroundColor Green
+    try {
+        $keyScan = & ssh-keyscan -H $GitLabHost
+        if ($LASTEXITCODE -eq 0 -and $keyScan) {
+            Add-Content -Path $knownHostsPath -Value $keyScan
+            Write-Host "Хост-ключ добавлен." -ForegroundColor Green
+        }
+        else {
+            Write-Host "[WARN] Не удалось получить хост-ключ для $GitLabHost. Проверьте подключение к сети." -ForegroundColor Yellow
+        }
     }
-    else {
-        Write-Host "[WARN] Не удалось получить хост-ключ для $GitLabHost. Проверьте подключение к сети." -ForegroundColor Yellow
+    catch {
+        Write-Host "[WARN] Ошибка при сканировании ключа: $($_.Exception.Message). Проверьте подключение к сети." -ForegroundColor Yellow
     }
 }
 
