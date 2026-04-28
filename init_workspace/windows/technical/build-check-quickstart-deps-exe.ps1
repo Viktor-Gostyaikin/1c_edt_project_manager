@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+п»ї#Requires -Version 5.1
 
 param(
     [string]$OutputPath = "",
@@ -11,11 +11,11 @@ $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $SourceScript = Join-Path $ScriptDir "check-quickstart-deps.ps1"
 
 if (-not $OutputPath) {
-    $OutputPath = Join-Path $ScriptDir "check-quickstart-deps.exe"
+    $OutputPath = Join-Path (Split-Path -Parent $ScriptDir) "commands\check-quickstart-deps.exe"
 }
 
 if (-not (Test-Path $SourceScript)) {
-    throw "Не найден исходный скрипт: $SourceScript"
+    throw "РќРµ РЅР°Р№РґРµРЅ РёСЃС…РѕРґРЅС‹Р№ СЃРєСЂРёРїС‚: $SourceScript"
 }
 
 function Get-Ps2ExeCommand {
@@ -36,18 +36,18 @@ function Get-Ps2ExeCommand {
 $ps2exe = Get-Ps2ExeCommand
 
 if (-not $ps2exe -and $InstallPs2Exe) {
-    Write-Host "PS2EXE не найден. Устанавливаю модуль ps2exe для текущего пользователя..." -ForegroundColor Yellow
+    Write-Host "PS2EXE РЅРµ РЅР°Р№РґРµРЅ. РЈСЃС‚Р°РЅР°РІР»РёРІР°СЋ РјРѕРґСѓР»СЊ ps2exe РґР»СЏ С‚РµРєСѓС‰РµРіРѕ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ..." -ForegroundColor Yellow
     Install-Module ps2exe -Scope CurrentUser -Force
     $ps2exe = Get-Ps2ExeCommand
 }
 
 if (-not $ps2exe) {
-    Write-Host "Не найден модуль PS2EXE." -ForegroundColor Red
+    Write-Host "РќРµ РЅР°Р№РґРµРЅ РјРѕРґСѓР»СЊ PS2EXE." -ForegroundColor Red
     Write-Host ""
-    Write-Host "Установите его один раз:" -ForegroundColor Yellow
+    Write-Host "РЈСЃС‚Р°РЅРѕРІРёС‚Рµ РµРіРѕ РѕРґРёРЅ СЂР°Р·:" -ForegroundColor Yellow
     Write-Host "  Install-Module ps2exe -Scope CurrentUser"
     Write-Host ""
-    Write-Host "Или запустите сборку с автоматической установкой:" -ForegroundColor Yellow
+    Write-Host "РР»Рё Р·Р°РїСѓСЃС‚РёС‚Рµ СЃР±РѕСЂРєСѓ СЃ Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРѕР№ СѓСЃС‚Р°РЅРѕРІРєРѕР№:" -ForegroundColor Yellow
     Write-Host "  powershell -ExecutionPolicy Bypass -File .\build-check-quickstart-deps-exe.ps1 -InstallPs2Exe"
     exit 1
 }
@@ -56,11 +56,11 @@ Invoke-ps2exe `
     -inputFile $SourceScript `
     -outputFile $OutputPath `
     -title "ITW MIS Quickstart Dependency Check" `
-    -description "Проверка зависимостей быстрого старта проекта ITW MIS" `
+    -description "РџСЂРѕРІРµСЂРєР° Р·Р°РІРёСЃРёРјРѕСЃС‚РµР№ Р±С‹СЃС‚СЂРѕРіРѕ СЃС‚Р°СЂС‚Р° РїСЂРѕРµРєС‚Р° ITW MIS" `
     -company "ITWorks" `
     -product "ITW MIS" `
     -version "1.0.0.0" `
     -noConsole:$false `
     -requireAdmin:$false
 
-Write-Host "Готово: $OutputPath" -ForegroundColor Green
+Write-Host "Р“РѕС‚РѕРІРѕ: $OutputPath" -ForegroundColor Green

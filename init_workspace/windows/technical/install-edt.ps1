@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+п»ї#Requires -Version 5.1
 
 param(
     [string]$Version = "2026.1.0",
@@ -8,9 +8,9 @@ param(
     [string]$ExtractDir = "",
     [string]$ReleasePageUrl = "",
     [string[]]$DistributionFilters = @(
-        "Дистрибутив для оффлайн установки 1C:EDT для ОС Windows 64 бит$",
-        "Дистрибутив 1C:EDT для ОС Windows для установки без интернета$",
-        "Дистрибутив 1C:EDT для ОС Windows 64 бит$"
+        "Р”РёСЃС‚СЂРёР±СѓС‚РёРІ РґР»СЏ РѕС„С„Р»Р°Р№РЅ СѓСЃС‚Р°РЅРѕРІРєРё 1C:EDT РґР»СЏ РћРЎ Windows 64 Р±РёС‚$",
+        "Р”РёСЃС‚СЂРёР±СѓС‚РёРІ 1C:EDT РґР»СЏ РћРЎ Windows РґР»СЏ СѓСЃС‚Р°РЅРѕРІРєРё Р±РµР· РёРЅС‚РµСЂРЅРµС‚Р°$",
+        "Р”РёСЃС‚СЂРёР±СѓС‚РёРІ 1C:EDT РґР»СЏ РћРЎ Windows 64 Р±РёС‚$"
     ),
     [string[]]$InstallerArguments = @("install"),
     [switch]$DownloadOnly,
@@ -83,7 +83,7 @@ function Find-EdtInstaller {
         }
     }
 
-    throw "Не найден установщик EDT в каталоге: $SearchDir"
+    throw "РќРµ РЅР°Р№РґРµРЅ СѓСЃС‚Р°РЅРѕРІС‰РёРє EDT РІ РєР°С‚Р°Р»РѕРіРµ: $SearchDir"
 }
 
 function Install-Edt {
@@ -96,10 +96,10 @@ function Install-Edt {
 
     Assert-Administrator
 
-    Write-Host "Запускаю установку EDT: $($Installer.Path)"
+    Write-Host "Р—Р°РїСѓСЃРєР°СЋ СѓСЃС‚Р°РЅРѕРІРєСѓ EDT: $($Installer.Path)"
 
     if ($Installer.Type -eq "Cli") {
-        Write-Host "Консольный установщик EDT, аргументы: $($Arguments -join ' ')"
+        Write-Host "РљРѕРЅСЃРѕР»СЊРЅС‹Р№ СѓСЃС‚Р°РЅРѕРІС‰РёРє EDT, Р°СЂРіСѓРјРµРЅС‚С‹: $($Arguments -join ' ')"
         $process = Start-Process `
             -FilePath $Installer.Path `
             -ArgumentList $Arguments `
@@ -108,7 +108,7 @@ function Install-Edt {
             -PassThru
     }
     else {
-        Write-Host "Консольный установщик не найден, запускаю доступный установщик в интерактивном режиме."
+        Write-Host "РљРѕРЅСЃРѕР»СЊРЅС‹Р№ СѓСЃС‚Р°РЅРѕРІС‰РёРє РЅРµ РЅР°Р№РґРµРЅ, Р·Р°РїСѓСЃРєР°СЋ РґРѕСЃС‚СѓРїРЅС‹Р№ СѓСЃС‚Р°РЅРѕРІС‰РёРє РІ РёРЅС‚РµСЂР°РєС‚РёРІРЅРѕРј СЂРµР¶РёРјРµ."
         $process = Start-Process `
             -FilePath $Installer.Path `
             -WorkingDirectory (Split-Path -Parent $Installer.Path) `
@@ -117,7 +117,7 @@ function Install-Edt {
     }
 
     if ($process.ExitCode -ne 0) {
-        throw "Установщик EDT завершился с кодом $($process.ExitCode)."
+        throw "РЈСЃС‚Р°РЅРѕРІС‰РёРє EDT Р·Р°РІРµСЂС€РёР»СЃСЏ СЃ РєРѕРґРѕРј $($process.ExitCode)."
     }
 }
 
@@ -131,10 +131,10 @@ $distribution = Save-OneCDistribution `
     -Password $credential.Password `
     -Force:$ForceDownload
 
-Write-Host "Скачанный дистрибутив: $($distribution.File)"
+Write-Host "РЎРєР°С‡Р°РЅРЅС‹Р№ РґРёСЃС‚СЂРёР±СѓС‚РёРІ: $($distribution.File)"
 
 if ($DownloadOnly) {
-    Write-Host "Режим DownloadOnly: установка не запускается."
+    Write-Host "Р РµР¶РёРј DownloadOnly: СѓСЃС‚Р°РЅРѕРІРєР° РЅРµ Р·Р°РїСѓСЃРєР°РµС‚СЃСЏ."
     exit 0
 }
 
@@ -147,15 +147,15 @@ $installer = Find-EdtInstaller -SearchDir $installerRoot -DownloadedFile $distri
 Install-Edt -Installer $installer -Arguments $InstallerArguments
 
 if (-not $SkipDependencyCheck) {
-    $checkScript = Join-Path $ScriptDir "check-quickstart-deps.cmd"
+    $checkScript = Join-Path (Split-Path -Parent $ScriptDir) "commands\check-quickstart-deps.cmd"
     if (Test-Path $checkScript) {
-        Write-Host "Запускаю проверку зависимостей..."
+        Write-Host "Р—Р°РїСѓСЃРєР°СЋ РїСЂРѕРІРµСЂРєСѓ Р·Р°РІРёСЃРёРјРѕСЃС‚РµР№..."
         $env:NO_PAUSE = "1"
         & $checkScript
         if ($LASTEXITCODE -ne 0) {
-            throw "Проверка зависимостей завершилась с ошибкой."
+            throw "РџСЂРѕРІРµСЂРєР° Р·Р°РІРёСЃРёРјРѕСЃС‚РµР№ Р·Р°РІРµСЂС€РёР»Р°СЃСЊ СЃ РѕС€РёР±РєРѕР№."
         }
     }
 }
 
-Write-Host "Установка EDT завершена." -ForegroundColor Green
+Write-Host "РЈСЃС‚Р°РЅРѕРІРєР° EDT Р·Р°РІРµСЂС€РµРЅР°." -ForegroundColor Green

@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+п»ї#Requires -Version 5.1
 
 function Get-InitWorkspaceVariables {
     param(
@@ -6,8 +6,13 @@ function Get-InitWorkspaceVariables {
         [string]$ScriptDir
     )
 
-    $varsPath = Join-Path $ScriptDir "local.vars.ps1"
-    if (-not (Test-Path $varsPath)) {
+    $candidatePaths = @(
+        (Join-Path $ScriptDir "local.vars.ps1"),
+        (Join-Path (Split-Path -Parent $ScriptDir) "local.vars.ps1")
+    )
+
+    $varsPath = $candidatePaths | Where-Object { Test-Path $_ } | Select-Object -First 1
+    if (-not $varsPath) {
         return @{}
     }
 
@@ -15,7 +20,7 @@ function Get-InitWorkspaceVariables {
     . $varsPath
 
     if ($InitWorkspace -isnot [hashtable]) {
-        throw "Файл переменных должен задавать hashtable `$InitWorkspace. Файл: $varsPath"
+        throw "Р¤Р°Р№Р» РїРµСЂРµРјРµРЅРЅС‹С… РґРѕР»Р¶РµРЅ Р·Р°РґР°РІР°С‚СЊ hashtable `$InitWorkspace. Р¤Р°Р№Р»: $varsPath"
     }
 
     return $InitWorkspace

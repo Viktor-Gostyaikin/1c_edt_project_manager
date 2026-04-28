@@ -189,7 +189,7 @@ Install-Platform -InstallerPath $installerPath -Arguments $InstallerArguments
 Install-HaspDriverFromPlatform -PlatformVersion $Version
 
 if (-not $SkipDependencyCheck) {
-    $checkScript = Join-Path $ScriptDir "check-quickstart-deps.cmd"
+    $checkScript = Join-Path (Split-Path -Parent $ScriptDir) "commands\check-quickstart-deps.cmd"
     if (Test-Path $checkScript) {
         Write-Host "Запускаю проверку зависимостей..."
         $env:NO_PAUSE = "1"
