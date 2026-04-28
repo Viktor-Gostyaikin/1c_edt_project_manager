@@ -48,6 +48,7 @@ $InitWorkspace = @{
 
 | Скрипт | Что делает |
 | --- | --- |
+| `commands\start-workspace-setup.cmd` | Открывает мастер подготовки рабочего места с кнопками запуска |
 | `commands\install-git.cmd` | Устанавливает Git for Windows и настраивает глобальные параметры Git |
 | `commands\install-archiver.cmd` | Устанавливает 7-Zip для распаковки RAR-архивов |
 | `commands\install-platform.cmd` | Скачивает и устанавливает платформу 1С вместе с серверным компонентом |
@@ -58,12 +59,25 @@ $InitWorkspace = @{
 
 ## Рекомендуемый workflow
 
-1. `commands\install-git.cmd`
-2. `commands\install-archiver.cmd`
-3. `commands\install-platform.cmd`
-4. `commands\install-edt.cmd`
-5. `commands\check-ssh-gitlab.cmd`
-6. `commands\check-quickstart-deps.cmd`
+Основной вариант для пользователя:
+
+```cmd
+commands\start-workspace-setup.cmd
+```
+
+В мастере нажимайте кнопки сверху вниз:
+
+1. Проверить окружение.
+2. Настроить `local.vars.ps1`.
+3. Установить Git.
+4. Проверить SSH GitLab.
+5. Установить 7-Zip.
+6. Установить платформу 1С.
+7. Установить EDT.
+8. Установить HASP.
+9. Запустить итоговую проверку.
+
+Те же действия можно запускать отдельными командами из `commands`.
 
 ## Параметры запуска
 

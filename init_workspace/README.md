@@ -6,6 +6,7 @@
 
 | Задача | Скрипт |
 | --- | --- |
+| Открыть мастер подготовки с кнопками | `windows\commands\start-workspace-setup.cmd` |
 | Проверить платформу 1С, серверный компонент, EDT, Git, Git LFS и Java | `windows\commands\check-quickstart-deps.cmd` |
 | Установить Git for Windows и настроить Git | `windows\commands\install-git.cmd` |
 | Установить 7-Zip | `windows\commands\install-archiver.cmd` |
@@ -46,13 +47,13 @@ $InitWorkspace = @{
 }
 ```
 
-4. Запустите проверку окружения:
+4. Запустите мастер подготовки:
 
 ```cmd
-commands\check-quickstart-deps.cmd
+commands\start-workspace-setup.cmd
 ```
 
-5. Если в выводе есть `FAIL`, установите недостающие компоненты соответствующими скриптами и повторите проверку.
+5. В мастере нажимайте кнопки сверху вниз. Если проверка показывает `FAIL`, установите недостающие компоненты и повторите проверку.
 
 ## Рекомендуемый порядок подготовки
 
