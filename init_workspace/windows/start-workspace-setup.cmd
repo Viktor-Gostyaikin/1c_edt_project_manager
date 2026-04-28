@@ -1,7 +1,7 @@
 @echo off
 chcp 65001 > nul
 
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0technical\start-workspace-setup.ps1" %*
+wscript.exe "%~dp0technical\start-workspace-setup-hidden.vbs" %*
 set SETUP_RESULT=%ERRORLEVEL%
 
 exit /b %SETUP_RESULT%

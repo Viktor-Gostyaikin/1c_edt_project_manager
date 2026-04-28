@@ -40,6 +40,8 @@ function Restart-Elevated {
         "-NoProfile",
         "-ExecutionPolicy",
         "Bypass",
+        "-WindowStyle",
+        "Hidden",
         "-File",
         "`"$PSCommandPath`""
     )
@@ -50,7 +52,7 @@ function Restart-Elevated {
     }
 
     try {
-        Start-Process -FilePath "powershell.exe" -ArgumentList $argumentList -Verb RunAs | Out-Null
+        Start-Process -FilePath "powershell.exe" -ArgumentList $argumentList -Verb RunAs -WindowStyle Hidden | Out-Null
         return $true
     }
     catch {
