@@ -67,7 +67,7 @@ function Resolve-ProjectPaths {
     }
 
     if ([string]::IsNullOrWhiteSpace($script:EdtWorkspaceDir) -and -not [string]::IsNullOrWhiteSpace($script:ProjectRootDir)) {
-        $script:EdtWorkspaceDir = Join-Path $script:ProjectRootDir ".metadata"
+        $script:EdtWorkspaceDir = $script:ProjectRootDir
     }
 }
 
