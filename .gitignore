@@ -4,3 +4,5 @@ init_workspace/windows/check-quickstart-deps.exe
 *.tmp
 
 init_workspace/windows/local.vars.ps1
+*.code-workspace
+.codex
