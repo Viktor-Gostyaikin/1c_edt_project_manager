@@ -1,6 +1,6 @@
 # Утилиты инициализации рабочего пространства разработчика 1С
 
-Каталог `init_workspace` содержит вспомогательные скрипты для подготовки рабочего места разработчика 1С под Windows. Скрипты помогают проверить окружение, установить типовые зависимости и задать локальные параметры, которые зависят от конкретного компьютера.
+Каталог `init_workspace` содержит вспомогательные скрипты для подготовки рабочего места разработчика 1С под Windows и Linux. Скрипты помогают проверить окружение, установить типовые зависимости и задать локальные параметры, которые зависят от конкретного компьютера.
 
 ## Что есть в этом каталоге
 
@@ -18,6 +18,13 @@
 | Открыть настройки 1C:EDT | `windows\commands\open-edt-config.cmd` |
 | Запустить приложение 1C:EDT | `windows\commands\start-edt.cmd` |
 | Создать файловую информационную базу 1С | `windows\commands\create-infobase.cmd` |
+
+Для Linux MVP-команды лежат в `linux/commands`, основной вход:
+
+```bash
+cd init_workspace/linux
+./start-workspace-setup.sh
+```
 
 Пользовательские команды лежат в `windows\commands`. Техническая реализация на PowerShell лежит в `windows\technical`.
 
@@ -91,7 +98,7 @@ start-workspace-setup.cmd
 | `OneCUser`, `OneCPassword` | учетная запись для `releases.1c.ru` |
 | `GitUserName`, `GitUserEmail` | глобальные настройки Git |
 | `GitLabHost` | домен GitLab для проверки SSH |
-| `ProjectRepoUrl`, `ProjectCloneDir`, `ProjectRootDir`, `EdtWorkspaceDir`, `InfoBasePath`, `InfoBaseListName`, `ProjectBranch` | URL репозитория, каталоги проекта, EDT workspace и файловой ИБ, ветка проекта |
+| `ProjectRepoUrl`, `ProjectCloneDir`, `ProjectRootDir`, `EdtWorkspaceDir`, `InfoBasePath`, `InfoBaseListName`, `ProjectBranch` | URL репозитория, каталоги проекта, EDT workspace и файловой ИБ, ветка проекта. В Linux `PROJECT_CLONE_DIR` используется как родительский каталог для репозиториев, а `PROJECT_ROOT_DIR` как каталог конкретного репозитория |
 | `PlatformVersion`, `V8Path`, `EdtVersion`, `EdtPath`, `EdtCliPath`, `EdtIniPath` | версии платформы/EDT и пути к `1cv8.exe`, приложению EDT, `1cedtcli` и `1cedt.ini`, если они не найдены автоматически |
 | `PlatformDownloadDir`, `EdtDownloadDir` | каталоги скачивания дистрибутивов |
 | `PlatformExtractDir`, `EdtExtractDir` | каталоги распаковки установщиков |
@@ -99,8 +106,26 @@ start-workspace-setup.cmd
 
 Если параметр не задан, используется значение по умолчанию из соответствующего скрипта.
 
+## Linux MVP
+
+Linux-версия содержит терминальный мастер и команды:
+
+| Задача | Скрипт |
+| --- | --- |
+| Открыть терминальный мастер подготовки | `linux/start-workspace-setup.sh` |
+| Проверить платформу 1С, серверный компонент, EDT, Git, Git LFS и Java | `linux/commands/check-quickstart-deps.sh` |
+| Установить Git и Git LFS | `linux/commands/install-git.sh` |
+| Создать SSH-ключ GitLab и настроить `~/.ssh/config` | `linux/commands/create-ssh-key-gitlab.sh` |
+| Проверить SSH-доступ к GitLab | `linux/commands/check-ssh-gitlab.sh` |
+| Развернуть репозиторий проекта | `linux/commands/clone-project.sh` |
+| Импортировать проект в рабочую область EDT | `linux/commands/init-edt-workspace.sh` |
+| Запустить приложение 1C:EDT | `linux/commands/start-edt.sh` |
+| Создать файловую информационную базу 1С | `linux/commands/create-infobase.sh` |
+
+Подробная документация для Linux-скриптов находится в `linux/README.md`.
+
 ## Что дальше
 
 Подробная документация для Windows-скриптов находится в `windows/README.md`.
 
-Если нужно только просмотреть пример переменных, откройте `windows/local.vars.example.ps1`.
+Если нужно только просмотреть пример переменных, откройте `windows/local.vars.example.ps1` или `linux/local.vars.example.sh`.

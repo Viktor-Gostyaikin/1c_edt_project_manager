@@ -61,3 +61,30 @@ init_workspace/windows/install-platform.cmd
 ```cmd
 init_workspace/windows/install-edt.cmd
 ```
+
+## Порядок выполнения для Linux
+
+MVP Linux-версии находится в:
+
+```bash
+init_workspace/linux
+```
+
+Создайте локальные переменные:
+
+```bash
+cp init_workspace/linux/local.vars.example.sh init_workspace/linux/local.vars.sh
+```
+
+Заполните `local.vars.sh`, затем запустите терминальный мастер:
+
+```bash
+cd init_workspace/linux
+./start-workspace-setup.sh
+```
+
+Автоматическая установка платформы 1С и 1C:EDT для Linux пока не входит в MVP. Их нужно установить вручную из дистрибутивов `releases.1c.ru`, после чего запустить проверку:
+
+```bash
+./commands/check-quickstart-deps.sh
+```
