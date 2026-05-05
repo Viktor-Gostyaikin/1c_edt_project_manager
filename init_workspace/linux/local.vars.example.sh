@@ -35,9 +35,22 @@ INFOBASE_LIST_NAME=""
 # 1C:Enterprise Platform.
 PLATFORM_VERSION="8.5.1.1302"
 V8_PATH=""
+PLATFORM_DOWNLOAD_DIR=""
+PLATFORM_EXTRACT_DIR=""
+PLATFORM_RELEASE_PAGE_URL=""
+# Регулярные выражения через | для выбора Linux-дистрибутива на releases.1c.ru.
+PLATFORM_DISTRIBUTION_FILTERS="Технологическая платформа 1С:Предприятия \\(64-bit\\) для Linux$"
+# Компоненты платформы для установки: server, client или server,client.
+# Для .run это соответствует server,ws,client_full,ru.
+PLATFORM_INSTALL_COMPONENTS="server,client"
 
 # 1C:EDT.
 EDT_VERSION="2026.1.0"
 EDT_PATH=""
 EDT_CLI_PATH=""
 EDT_INI_PATH=""
+EDT_DOWNLOAD_DIR=""
+EDT_EXTRACT_DIR=""
+EDT_RELEASE_PAGE_URL=""
+# Регулярные выражения через | для выбора Linux-дистрибутива EDT на releases.1c.ru.
+EDT_DISTRIBUTION_FILTERS="Дистрибутив 1C:EDT для ОС Linux для установки без интернета$"

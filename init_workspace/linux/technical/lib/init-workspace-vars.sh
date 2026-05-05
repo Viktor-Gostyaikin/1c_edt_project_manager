@@ -35,10 +35,18 @@ load_init_workspace_vars() {
   : "${INFOBASE_LIST_NAME:=}"
   : "${PLATFORM_VERSION:=8.5.1.1302}"
   : "${V8_PATH:=}"
+  : "${PLATFORM_DOWNLOAD_DIR:=}"
+  : "${PLATFORM_EXTRACT_DIR:=}"
+  : "${PLATFORM_RELEASE_PAGE_URL:=}"
+  : "${PLATFORM_DISTRIBUTION_FILTERS:=Технологическая платформа 1С:Предприятия \(64-bit\) для Linux$}"
   : "${EDT_VERSION:=2026.1.0}"
   : "${EDT_PATH:=}"
   : "${EDT_CLI_PATH:=}"
   : "${EDT_INI_PATH:=}"
+  : "${EDT_DOWNLOAD_DIR:=}"
+  : "${EDT_EXTRACT_DIR:=}"
+  : "${EDT_RELEASE_PAGE_URL:=}"
+  : "${EDT_DISTRIBUTION_FILTERS:=Дистрибутив 1C:EDT для ОС Linux для установки без интернета$}"
 }
 
 user_home_by_name() {

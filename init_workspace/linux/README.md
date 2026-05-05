@@ -187,6 +187,57 @@ EDT_CLI_PATH="/path/to/1cedtcli"
 EDT_INI_PATH="/path/to/1cedt.ini"
 ```
 
+## Автоматическая установка 1С и EDT
+
+Скрипты `install-platform.sh` и `install-edt.sh` скачивают дистрибутивы с `releases.1c.ru`, распаковывают их и запускают установку.
+
+Для платформы используются параметры:
+
+```bash
+PLATFORM_VERSION="8.5.1.1302"
+PLATFORM_DOWNLOAD_DIR=""
+PLATFORM_EXTRACT_DIR=""
+PLATFORM_RELEASE_PAGE_URL=""
+PLATFORM_DISTRIBUTION_FILTERS="Технологическая платформа 1С:Предприятия \\(64-bit\\) для Linux$"
+PLATFORM_INSTALL_COMPONENTS="server,client"
+```
+
+Для EDT используются параметры:
+
+```bash
+EDT_VERSION="2026.1.0"
+EDT_DOWNLOAD_DIR=""
+EDT_EXTRACT_DIR=""
+EDT_RELEASE_PAGE_URL=""
+EDT_DISTRIBUTION_FILTERS="Дистрибутив 1C:EDT для ОС Linux для установки без интернета$"
+```
+
+Фильтры разделяются символом `|` и являются регулярными выражениями по названию ссылки на странице релиза. Если 1С изменит название Linux-дистрибутива, уточните соответствующий `*_DISTRIBUTION_FILTERS` в `local.vars.sh`.
+
+Примеры запуска:
+
+```bash
+./commands/install-platform.sh --download-only
+./commands/install-platform.sh --force-download --force-extract
+./commands/install-edt.sh --download-only
+./commands/install-edt.sh --force-download --force-extract
+```
+
+Поддержанные ключи:
+
+| Ключ | Назначение |
+| --- | --- |
+| `--download-only` | Только скачать дистрибутив без установки |
+| `--force-download` | Перекачать файл, даже если он уже есть |
+| `--force-extract` | Очистить каталог распаковки и распаковать заново |
+| `--skip-dependency-check` | Не запускать итоговую проверку после установки |
+
+Для платформы Linux установщик ставит компоненты сервера и клиента. Для пакетных дистрибутивов выбираются пакеты `common`, `server`, `ws`, `client`; для `.run` включаются компоненты `server,ws,client_full,ru`. После установки создается ссылка `/opt/1cv8/current` на установленную версию платформы.
+
+Если нужно изменить набор компонентов, задайте `PLATFORM_INSTALL_COMPONENTS` в `local.vars.sh`: `server`, `client` или `server,client`.
+
+Для EDT установщик ищет `1ce-installer-cli`, `1ce-installer` или `.run` и запускает найденный вариант от имени `WORKSPACE_USER`.
+
 Для установки через EDT Start можно указать каталог, где лежит CLI:
 
 ```bash
@@ -195,6 +246,6 @@ EDT_CLI_PATH="$HOME/.local/share/1C/1cedtstart/installations/1C_EDT 2026.1/1cedt
 
 ## Ограничения MVP
 
-- `install-platform.sh` и `install-edt.sh` пока выводят инструкции для ручной установки.
+- Автоматическая установка зависит от точных названий Linux-дистрибутивов на `releases.1c.ru`; при необходимости настройте `*_DISTRIBUTION_FILTERS`.
 - Поддержка пакетных менеджеров есть для `apt`, `dnf`, `yum`, `zypper`, но основной проверенный сценарий рассчитан на Debian/Ubuntu.
 - GUI не входит в MVP; точка входа сейчас терминальная.
